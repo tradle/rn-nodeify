@@ -1,0 +1,12 @@
+{
+  "name": "rn-nodeify",
+  "version": "1.0.0",
+  "preferGlobal": true,
+  "bin": "./cmd.js",
+  "dependencies": {
+    "findit": "^2.0.0",
+    "fs-extra": "^0.22.1",
+    "semver": "^5.0.1",
+    "xtend": "^4.0.0"
+  }
+}
