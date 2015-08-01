@@ -16,13 +16,13 @@ var argv = process.argv.slice(2)
 installShims(argv.length ? argv : Object.keys(allShims))
 hackPackageJSONs()
 
-function installShims (shims) {
-  shims.forEach(function (name) {
+function installShims (shimNames) {
+  shimNames.forEach(function (name) {
     var modPath = path.resolve('./node_modules/' + name)
     fs.exists(modPath, function (exists) {
       if (exists) {
         var existingVer = require(modPath + '/package.json').version
-        if (semver.satisfies(existingVer, shims[name])) {
+        if (semver.satisfies(existingVer, allShims[name])) {
           console.log('not reinstalling ' + name)
           return
         }
