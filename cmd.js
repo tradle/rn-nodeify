@@ -6,15 +6,25 @@ var semver = require('semver')
 var proc = require('child_process')
 var extend = require('xtend')
 var find = require('findit')
-// var allShims = require('./shims.json')
-// var browser = require('./browser.json')
-var allShims = require('./shims-browserify.json')
-var browser = require('./browser-browserify.json')
+var allShims = require('./shims.json')
+var coreList = require('./coreList.json')
+var whiteList = [
+  'unzip-response'
+]
+
+var browser = require('./browser.json')
 var pkg = require('./package.json')
 var argv = process.argv.slice(2)
 
 installShims(argv.length ? argv : Object.keys(allShims))
 hackPackageJSONs()
+
+function shouldRemoveExclude (name) {
+  if (coreList.indexOf(name) !== -1) return true
+  if (whiteList.indexOf(name) !== -1) return true
+
+  return false
+}
 
 function installShims (shimNames) {
   shimNames.forEach(function (name) {
@@ -48,51 +58,70 @@ function installShims (shimNames) {
 }
 
 function hackPackageJSONs () {
+  fixPackageJSON('./package.json')
+
   var finder = find('./node_modules')
 
   finder.on('file', function (file) {
     if (!/\/package\.json$/.test(file)) return
 
-    fs.readFile(path.resolve(file), { encoding: 'utf8' }, function (err, contents) {
-      if (err) throw err
+    fixPackageJSON(file)
+  })
+}
 
-      var pkgJson
-      try {
-        pkgJson = JSON.parse(contents)
-      } catch (err) {
-        console.warn('failed to parse', file)
-        return
-      }
+function fixPackageJSON (file) {
+  fs.readFile(path.resolve(file), { encoding: 'utf8' }, function (err, contents) {
+    if (err) throw err
 
-      var orgBrowser = pkgJson.browser
-      var depBrowser = extend(browser)
-      var save
-      if (typeof orgBrowser === 'string') {
-        depBrowser[pkgJson.main] = pkgJson.browser
-        save = true
+    var pkgJson
+    try {
+      pkgJson = JSON.parse(contents)
+    } catch (err) {
+      console.warn('failed to parse', file)
+      return
+    }
+
+    // if (shims[pkgJson.name]) {
+    //   console.log('skipping', pkgJson.name)
+    //   return
+    // }
+
+    if (pkgJson.name === 'readable-stream') debugger
+
+    var orgBrowser = pkgJson.browser
+    var depBrowser = extend(browser)
+    var save
+    if (typeof orgBrowser === 'string') {
+      depBrowser[pkgJson.main] = pkgJson.browser
+      save = true
+    } else {
+      if (typeof orgBrowser === 'object') {
+        depBrowser = extend(depBrowser, orgBrowser)
       } else {
-        if (typeof orgBrowser === 'object') {
-          depBrowser = extend(depBrowser, orgBrowser)
-        } else {
-          save = true
-        }
+        save = true
       }
+    }
 
-      if (!save) {
-        for (var p in depBrowser) {
-          if (!orgBrowser[p]) {
+    if (!save) {
+      for (var p in depBrowser) {
+        if (orgBrowser[p] === false) {
+          if (shouldRemoveExclude(p)) {
             save = true
-          } else if (depBrowser[p] !== browser[p]) {
-            console.log('not overwriting mapping', p, orgBrowser[p])
+            console.log('removing browser exclude', file, p)
+            delete depBrowser[p]
           }
+        } else if (!orgBrowser[p]) {
+          save = true
+        } else if (depBrowser[p] !== browser[p]) {
+          console.log('not overwriting mapping', p, orgBrowser[p])
         }
       }
+    }
 
-      if (save) {
-        pkgJson.browser = depBrowser
-        fs.writeFile(file, JSON.stringify(pkgJson, null, 2), rethrow)
-      }
-    })
+    if (save) {
+      pkgJson.browser = depBrowser
+      fs.writeFile(file, JSON.stringify(pkgJson, null, 2), rethrow)
+    }
   })
 }
 
