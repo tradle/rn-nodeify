@@ -7,9 +7,6 @@ var find = require('findit')
 var path = require('path')
 // var thisPkg = require('./package.json')
 
-// var otrPath = path.resolve('./node_modules/tim/otr')
-var raisedOtrPath = path.resolve('./node_modules/otr')
-
 // function loadDeps() {
 //   var pkgs = []
 //   loadPkg('./package.json')
@@ -276,38 +273,6 @@ var hackers = [
 
 function hackFiles () {
   var finder = find('./node_modules')
-  var otrSrcPath
-  var movedOTR = fs.existsSync(raisedOtrPath)
-  var toRemove = []
-
-  finder.on('directory', function (file) {
-    file = path.resolve(file)
-    if (/node_modules\/otr$/.test(file)) {
-      if (!otrSrcPath && /\/zlorp\/|\/tim\//.test(file)) {
-        otrSrcPath = file
-      } else {
-        if (file !== raisedOtrPath) {
-          return toRemove.push(file)
-        }
-      }
-    }
-  })
-
-  finder.on('end', function () {
-    if (!otrSrcPath && !movedOTR) {
-      throw new Error('no canonical otr installation found')
-    }
-
-    if (!movedOTR) {
-      console.log('moving', otrSrcPath, 'to', raisedOtrPath)
-      fs.move(otrSrcPath, raisedOtrPath, rethrow)
-    }
-
-    toRemove.forEach(function (file) {
-      console.log('removing', file)
-      fs.remove(file, rethrow)
-    })
-  })
 
   finder.on('file', function (file) {
     if (!/\.(js|json)$/.test(file)
@@ -349,22 +314,6 @@ function rewireMain (pkg) {
     pkg.browser = {}
   }
 }
-
-// if (fs.existsSync(otrPath)) {
-//   debugger
-//   fs.move(otrPath, raisedOtrPath, function (err) {
-//     if (err) throw err
-
-//     hackFiles()
-//   })
-// }
-// else hackFiles()
-
-// function raise (dep) {
-//   var raised = './node_modules/' + path.basename(dep)
-//   if (fs.existsSync(raised)) fs.remove(dep)
-//   else fs.move(dep, raised)
-// }
 
 function rethrow (err) {
   if (err) throw err
