@@ -9,7 +9,7 @@
   "dns.js": "^1.0.1",
   "domain-browser": "^1.1.1",
   "events": "^1.0.0",
-  "http-browserify": "^1.3.2",
+  "react-native-http": "git://github.com/tradle/react-native-http",
   "https-browserify": "~0.0.0",
   "os-browserify": "~0.1.2",
   "path-browserify": "0.0.0",

@@ -6,4 +6,4 @@ if (typeof process === 'undefined') {
 }
 if (typeof Buffer === 'undefined') global.Buffer = require('buffer').Buffer
 
-global.location = global.location || { port: 80 }
+// global.location = global.location || { port: 80 }
