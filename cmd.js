@@ -6,58 +6,74 @@ var semver = require('semver')
 var proc = require('child_process')
 var extend = require('xtend')
 var find = require('findit')
+var minimist = require('minimist')
+var parallel = require('run-parallel')
 var allShims = require('./shims.json')
 var coreList = require('./coreList.json')
-var whiteList = [
-  'unzip-response'
-]
-
 var browser = require('./browser.json')
 var pkg = require('./package.json')
-var argv = process.argv.slice(2)
+var argv = minimist(process.argv.slice(2), {
+  alias: {
+    e: 'extra'
+  }
+})
 
-installShims(argv.length ? argv : Object.keys(allShims))
-hackPackageJSONs()
+installShims(argv._.length ? argv._ : Object.keys(allShims), function (err) {
+  if (err) throw err
+
+  hackPackageJSONs(function (err) {
+    if (err) throw err
+
+    if (argv.extra) {
+      require(path.resolve(__dirname, 'pkg-hacks'))
+    }
+  })
+})
 
 function shouldRemoveExclude (name) {
-  if (coreList.indexOf(name) !== -1) return true
-  if (whiteList.indexOf(name) !== -1) return true
-
-  return false
+  return coreList.indexOf(name) !== -1
 }
 
-function installShims (shimNames) {
-  shimNames.forEach(function (name) {
-    var modPath = path.resolve('./node_modules/' + name)
-    fs.exists(modPath, function (exists) {
-      if (exists) {
-        var existingVer = require(modPath + '/package.json').version
-        if (semver.satisfies(existingVer, allShims[name])) {
-          console.log('not reinstalling ' + name)
-          return
+function installShims (shimNames, done) {
+  var tasks = shimNames.map(function (name) {
+    return function (cb) {
+      var modPath = path.resolve('./node_modules/' + name)
+      fs.exists(modPath, function (exists) {
+        if (exists) {
+          var existingVer = require(modPath + '/package.json').version
+          if (semver.satisfies(existingVer, allShims[name])) {
+            console.log('not reinstalling ' + name)
+            return cb()
+          }
         }
-      }
 
-      proc.execSync('npm install --save ' + name + '@' + allShims[name], {
-        cwd: process.cwd(),
-        env: process.env,
-        stdio: 'inherit'
+        proc.execSync('npm install --save ' + name + '@' + allShims[name], {
+          cwd: process.cwd(),
+          env: process.env,
+          stdio: 'inherit'
+        })
+
+        cb()
+      })
+    }
+  })
+
+  tasks.push(function (cb) {
+    fs.exists('./shim.js', function (exists) {
+      if (exists) return cb()
+
+      fs.readFile(path.join(__dirname, 'shim.js'), { encoding: 'utf8' }, function (err, contents) {
+        if (err) return cb(err)
+
+        fs.writeFile('./shim.js', contents, cb)
       })
     })
   })
 
-  fs.exists('./shim.js', function (exists) {
-    if (exists) return
-
-    fs.readFile(path.join(__dirname, 'shim.js'), { encoding: 'utf8' }, function (err, contents) {
-      if (err) throw err
-
-      fs.writeFile('./shim.js', contents, rethrow)
-    })
-  })
+  parallel(tasks, done)
 }
 
-function hackPackageJSONs () {
+function hackPackageJSONs (done) {
   fixPackageJSON('./package.json')
 
   var finder = find('./node_modules')
@@ -67,6 +83,8 @@ function hackPackageJSONs () {
 
     fixPackageJSON(file)
   })
+
+  finder.once('end', done)
 }
 
 function fixPackageJSON (file) {
@@ -86,7 +104,7 @@ function fixPackageJSON (file) {
     //   return
     // }
 
-    if (pkgJson.name === 'readable-stream') debugger
+    // if (pkgJson.name === 'readable-stream') debugger
 
     var orgBrowser = pkgJson.browser
     var depBrowser = extend(browser)

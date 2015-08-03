@@ -67,7 +67,20 @@ var hackers = [
 
       if (pkg.browser) {
         delete pkg.browser
-        return JSON.stringify(pkg, null, 2)
+        return prettify(pkg)
+      }
+    }
+  },
+  {
+    name: 'simple-get',
+    regex: [
+      /simple\-get\/package\.json$/
+    ],
+    hack: function (file, contents) {
+      var pkg = JSON.parse(contents)
+      if (pkg.browser['unzip-response'] === false) {
+        delete pkg.browser['unzip-response']
+        return prettify(pkg)
       }
     }
   },
@@ -95,7 +108,7 @@ var hackers = [
           }
         }
 
-        if (fixed) return JSON.stringify(pkg, null, 2)
+        if (fixed) return prettify(pkg)
       }
     }
   },
@@ -104,10 +117,12 @@ var hackers = [
     regex: [
       /\/torrent\-discovery\/package.json$/,
       /\/webtorrent\/package.json$/,
+      /\/load-ip-set\/package.json$/,
     ],
     hack: function (file, contents) {
       var pkg = JSON.parse(contents)
       var browser = pkg.browser
+      var save
       var toDel = [
         'bittorrent-dht',
         'bittorrent-dht/client',
@@ -116,7 +131,12 @@ var hackers = [
         'bittorrent-swarm'
       ]
 
-      var save
+      for (var p in browser) {
+        if (browser[p] === false) {
+          toDel.push(p)
+        }
+      }
+
       toDel.forEach(function (p) {
         if (p in browser) {
           delete browser[p]
@@ -124,9 +144,7 @@ var hackers = [
         }
       })
 
-      if (save) {
-        return JSON.stringify(pkg, null, 2)
-      }
+      if (save) return prettify(pkg)
     }
   },
   {
@@ -183,7 +201,7 @@ var hackers = [
   //     rewireMain(pkg)
   //     if (pkg.browser.net !== 'utp') {
   //       pkg.browser.net = 'utp'
-  //       return JSON.stringify(pkg, null, 2)
+  //       return prettify(pkg)
   //     }
   //   }
   // },
@@ -295,21 +313,6 @@ function hackFiles () {
     if (!/\.(js|json)$/.test(file)
       || /\/tests?\//.test(file)) return
 
-    // var parts = file.split('/')
-      // var idx = 0
-      // // var idx = parts.indexOf(path.basename(__dirname))
-      // while ((idx = parts.indexOf('node_modules', idx)) !== -1) {
-      //   var dep = parts[idx + 1]
-      //   var parentPkgPath = idx === 0 ? './package.json' :
-      //     path.join(parts.slice(0, idx).join('/'), 'package.json')
-      //   parentPkgPath = path.resolve(parentPkgPath)
-      //   var parentPkg = require(parentPkgPath)
-      //   if (!(dep in parentPkg.dependencies)) return
-
-    //   parts.unshift() // node_modules
-      //   parts.unshift() // dep
-      // }
-
     var matchingHackers = hackers.filter(function (hacker) {
       return hacker.regex.some(function (regex) {
         return regex.test(file)
@@ -319,17 +322,7 @@ function hackFiles () {
     if (!matchingHackers.length) return
 
     file = path.resolve(file)
-    // if (/\.json$/.test(file)) {
-    //   try {
-    //     var json = JSON.parse(require(file))
-    //     onread(null, json)
-    //   } catch (err) {
-    //     console.warn('failed to parse:', file)
-    //   }
-    // }
-    // else {
     fs.readFile(file, { encoding: 'utf8' }, onread)
-    // }
 
     function onread (err, str) {
       if (err) throw err
@@ -379,6 +372,10 @@ function rethrow (err) {
 
 function body (fn) {
   return fn.toString().split(/\n/).slice(2, -2).join('\n').trim()
+}
+
+function prettify (json) {
+  return JSON.stringify(json, null, 2)
 }
 
 hackFiles()
