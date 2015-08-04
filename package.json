@@ -5,6 +5,7 @@
   "bin": "./cmd.js",
   "license": "MIT",
   "dependencies": {
+    "deep-equal": "^1.0.0",
     "findit": "^2.0.0",
     "fs-extra": "^0.22.1",
     "minimist": "^1.1.2",

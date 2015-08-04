@@ -4,7 +4,8 @@ var fs = require('fs')
 var path = require('path')
 var semver = require('semver')
 var proc = require('child_process')
-var extend = require('xtend')
+var extend = require('xtend/mutable')
+var deepEqual = require('deep-equal')
 var find = require('findit')
 var minimist = require('minimist')
 var parallel = require('run-parallel')
@@ -30,9 +31,9 @@ installShims(argv._.length ? argv._ : Object.keys(allShims), function (err) {
   })
 })
 
-function shouldRemoveExclude (name) {
-  return coreList.indexOf(name) !== -1
-}
+// function shouldRemoveExclude (name) {
+//   return coreList.indexOf(name) !== -1
+// }
 
 function installShims (shimNames, done) {
   var tasks = shimNames.map(function (name) {
@@ -74,7 +75,7 @@ function installShims (shimNames, done) {
 }
 
 function hackPackageJSONs (done) {
-  fixPackageJSON('./package.json')
+  fixPackageJSON('./package.json', true)
 
   var finder = find('./node_modules')
 
@@ -87,7 +88,7 @@ function hackPackageJSONs (done) {
   finder.once('end', done)
 }
 
-function fixPackageJSON (file) {
+function fixPackageJSON (file, overwrite) {
   fs.readFile(path.resolve(file), { encoding: 'utf8' }, function (err, contents) {
     if (err) throw err
 
@@ -106,37 +107,33 @@ function fixPackageJSON (file) {
 
     // if (pkgJson.name === 'readable-stream') debugger
 
-    var orgBrowser = pkgJson.browser
-    var depBrowser = extend(browser)
-    var save
+    var orgBrowser = pkgJson.browser || {}
     if (typeof orgBrowser === 'string') {
-      depBrowser[pkgJson.main] = pkgJson.browser
-      save = true
-    } else {
-      if (typeof orgBrowser === 'object') {
-        depBrowser = extend(depBrowser, orgBrowser)
-      } else {
-        save = true
-      }
+      orgBrowser = {}
+      orgBrowser[pkgJson.main || 'index.js'] = pkgJson.browser
     }
 
-    if (!save) {
-      for (var p in depBrowser) {
-        if (orgBrowser[p] === false) {
-          if (shouldRemoveExclude(p)) {
-            save = true
-            console.log('removing browser exclude', file, p)
-            delete depBrowser[p]
-          }
-        } else if (!orgBrowser[p]) {
-          save = true
-        } else if (depBrowser[p] !== browser[p]) {
+    var depBrowser = extend({}, orgBrowser)
+    for (var p in browser) {
+      if (!(p in orgBrowser)) {
+        depBrowser[p] = browser[p]
+      } else {
+        if (!overwrite && orgBrowser[p] !== browser[p]) {
           console.log('not overwriting mapping', p, orgBrowser[p])
+        } else {
+          depBrowser[p] = browser[p]
         }
       }
     }
 
-    if (save) {
+    coreList.forEach(function (p) {
+      if (depBrowser[p] === false) {
+        console.log('removing browser exclude', file, p)
+        delete depBrowser[p]
+      }
+    })
+
+    if (!deepEqual(orgBrowser, depBrowser)) {
       pkgJson.browser = depBrowser
       fs.writeFile(file, JSON.stringify(pkgJson, null, 2), rethrow)
     }
