@@ -19,7 +19,16 @@ var argv = minimist(process.argv.slice(2), {
   }
 })
 
-installShims(argv._.length ? argv._ : Object.keys(allShims), function (err) {
+var subset
+if (argv._.length) {
+  subset = argv._.map(function (s) {
+    return browser[s] || s
+  })
+} else {
+  subset = Object.keys(allShims)
+}
+
+installShims(subset, function (err) {
   if (err) throw err
 
   hackPackageJSONs(function (err) {
