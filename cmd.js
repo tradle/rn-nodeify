@@ -4,6 +4,7 @@ var fs = require('fs')
 var path = require('path')
 var semver = require('semver')
 var proc = require('child_process')
+var pick = require('object.pick')
 var extend = require('xtend/mutable')
 var deepEqual = require('deep-equal')
 var find = require('findit')
@@ -11,7 +12,7 @@ var minimist = require('minimist')
 var parallel = require('run-parallel')
 var allShims = require('./shims.json')
 var coreList = require('./coreList.json')
-var browser = require('./browser.json')
+var baseBrowser = require('./browser.json')
 var pkg = require('./package.json')
 var argv = minimist(process.argv.slice(2), {
   alias: {
@@ -19,88 +20,128 @@ var argv = minimist(process.argv.slice(2), {
   }
 })
 
-var subset
-if (argv._.length) {
-  subset = argv._.map(function (s) {
-    return browser[s] || s
-  })
-} else {
-  subset = Object.keys(allShims)
-}
+run()
 
-installShims(subset, function (err) {
-  if (err) throw err
+function run () {
+  var toShim
+  if (argv._.length) {
+    toShim = argv._
+    if (toShim.indexOf('stream') !== -1) {
+      toShim.push(
+        '_stream_transform',
+        '_stream_readable',
+        '_stream_writable',
+        '_stream_duplex',
+        '_stream_passthrough'
+      )
+    }
 
-  hackPackageJSONs(function (err) {
+    // var browserB = {}
+    // toShim.forEach(function (m) {
+    //   if (allShims[m]) {
+    //     browserB[m] = allShims[m]
+    //   }
+    // })
+
+    // browser = browserB
+  } else {
+    toShim = coreList
+  }
+
+  installShims(toShim, function (err) {
     if (err) throw err
 
-    if (argv.extra) {
-      require(path.resolve(__dirname, 'pkg-hacks'))
-    }
+    hackPackageJSONs(toShim, function (err) {
+      if (err) throw err
+
+      if (argv.extra) {
+        require(path.resolve(__dirname, 'pkg-hacks'))
+      }
+    })
   })
-})
+}
 
-// function shouldRemoveExclude (name) {
-//   return coreList.indexOf(name) !== -1
-// }
+function installShims (modulesToShim, done) {
+  var shimPkgNames = modulesToShim.map(function (m) {
+      return baseBrowser[m] || m
+    }).filter(function (shim) {
+      return !/^_/.test(shim) && shim.indexOf('/') === -1
+    })
 
-function installShims (shimNames, done) {
-  var tasks = shimNames.map(function (name) {
-    return function (cb) {
-      var modPath = path.resolve('./node_modules/' + name)
+  var existence = []
+  parallel(shimPkgNames.map(function (name) {
+    var modPath = path.resolve('./node_modules/' + name)
+    return function (cb)  {
       fs.exists(modPath, function (exists) {
         if (exists) {
           var existingVer = require(modPath + '/package.json').version
           if (semver.satisfies(existingVer, allShims[name])) {
+            shimPkgNames.splice(shimPkgNames.indexOf(name), 1)
             console.log('not reinstalling ' + name)
-            return cb()
           }
         }
-
-        proc.execSync('npm install --save ' + name + '@' + allShims[name], {
-          cwd: process.cwd(),
-          env: process.env,
-          stdio: 'inherit'
-        })
 
         cb()
       })
     }
-  })
+  }), function (err) {
+    if (err) throw err
 
-  tasks.push(function (cb) {
-    fs.exists('./shim.js', function (exists) {
-      if (exists) return cb()
+    var installLine = 'npm install --save '
+    shimPkgNames.forEach(function (name) {
+      if (allShims[name].indexOf('/') === -1) {
+        console.log('installing from npm', name)
+        installLine += name + '@' + allShims[name]
+      } else {
+        // github url
+        console.log('installing from github', name)
+        installLine += allShims[name].match(/([^\/]+\/[^\/]+)$/)[1]
+      }
 
-      fs.readFile(path.join(__dirname, 'shim.js'), { encoding: 'utf8' }, function (err, contents) {
-        if (err) return cb(err)
-
-        fs.writeFile('./shim.js', contents, cb)
-      })
+      installLine += ' '
     })
-  })
 
-  parallel(tasks, done)
+    proc.execSync(installLine, {
+      cwd: process.cwd(),
+      env: process.env,
+      stdio: 'inherit'
+    })
+
+    copyShim(done)
+  })
 }
 
-function hackPackageJSONs (done) {
-  fixPackageJSON('./package.json', true)
+function copyShim (cb) {
+  fs.exists('./shim.js', function (exists) {
+    if (exists) return cb()
+
+    fs.readFile(path.join(__dirname, 'shim.js'), { encoding: 'utf8' }, function (err, contents) {
+      if (err) return cb(err)
+
+      fs.writeFile('./shim.js', contents, cb)
+    })
+  })
+}
+
+function hackPackageJSONs (modules, done) {
+  fixPackageJSON(modules, './package.json', true)
 
   var finder = find('./node_modules')
 
   finder.on('file', function (file) {
     if (!/\/package\.json$/.test(file)) return
 
-    fixPackageJSON(file)
+    fixPackageJSON(modules, file, true)
   })
 
   finder.once('end', done)
 }
 
-function fixPackageJSON (file, overwrite) {
+function fixPackageJSON (modules, file, overwrite) {
   fs.readFile(path.resolve(file), { encoding: 'utf8' }, function (err, contents) {
     if (err) throw err
 
+    var browser = pick(baseBrowser, modules)
     var pkgJson
     try {
       pkgJson = JSON.parse(contents)
@@ -124,6 +165,8 @@ function fixPackageJSON (file, overwrite) {
 
     var depBrowser = extend({}, orgBrowser)
     for (var p in browser) {
+      if (modules.indexOf(p) === -1) continue
+
       if (!(p in orgBrowser)) {
         depBrowser[p] = browser[p]
       } else {
@@ -135,7 +178,7 @@ function fixPackageJSON (file, overwrite) {
       }
     }
 
-    coreList.forEach(function (p) {
+    modules.forEach(function (p) {
       if (depBrowser[p] === false) {
         console.log('removing browser exclude', file, p)
         delete depBrowser[p]
@@ -152,4 +195,3 @@ function fixPackageJSON (file, overwrite) {
 function rethrow (err) {
   if (err) throw err
 }
-
