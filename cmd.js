@@ -25,15 +25,8 @@ run()
 function run () {
   var toShim
   if (argv._.length) {
-    toShim = argv._.slice()
+    toShim = argv._
     // if (toShim.indexOf('stream') !== -1) {
-      toShim.push(
-        '_stream_transform',
-        '_stream_readable',
-        '_stream_writable',
-        '_stream_duplex',
-        '_stream_passthrough'
-      )
     // }
 
     // var browserB = {}
@@ -47,6 +40,15 @@ function run () {
   } else {
     toShim = coreList
   }
+
+  toShim = toShim.slice()
+  toShim.push(
+    '_stream_transform',
+    '_stream_readable',
+    '_stream_writable',
+    '_stream_duplex',
+    '_stream_passthrough'
+  )
 
   installShims(toShim, function (err) {
     if (err) throw err
