@@ -12,7 +12,7 @@ var minimist = require('minimist')
 var parallel = require('run-parallel')
 var allShims = require('./shims.json')
 var coreList = require('./coreList.json')
-var baseBrowser = require('./browser.json')
+var browser = require('./browser.json')
 var pkg = require('./package.json')
 var argv = minimist(process.argv.slice(2), {
   alias: {
@@ -25,8 +25,8 @@ run()
 function run () {
   var toShim
   if (argv._.length) {
-    toShim = argv._
-    if (toShim.indexOf('stream') !== -1) {
+    toShim = argv._.slice()
+    // if (toShim.indexOf('stream') !== -1) {
       toShim.push(
         '_stream_transform',
         '_stream_readable',
@@ -34,7 +34,7 @@ function run () {
         '_stream_duplex',
         '_stream_passthrough'
       )
-    }
+    // }
 
     // var browserB = {}
     // toShim.forEach(function (m) {
@@ -63,7 +63,7 @@ function run () {
 
 function installShims (modulesToShim, done) {
   var shimPkgNames = modulesToShim.map(function (m) {
-      return baseBrowser[m] || m
+      return browser[m] || m
     }).filter(function (shim) {
       return !/^_/.test(shim) && shim.indexOf('/') === -1
     })
@@ -73,12 +73,25 @@ function installShims (modulesToShim, done) {
     var modPath = path.resolve('./node_modules/' + name)
     return function (cb)  {
       fs.exists(modPath, function (exists) {
-        if (exists) {
-          var existingVer = require(modPath + '/package.json').version
-          if (semver.satisfies(existingVer, allShims[name])) {
-            shimPkgNames.splice(shimPkgNames.indexOf(name), 1)
-            console.log('not reinstalling ' + name)
+        if (!exists) return cb()
+
+        var install = true
+        var pkgJson = require(modPath + '/package.json')
+        if (/^git\:\/\//.test(pkgJson._resolved)) {
+          var hash = allShims[name].split('#')[1]
+          if (hash && pkgJson.gitHead.indexOf(hash) === 0) {
+            install = false
           }
+        } else {
+          var existingVer = pkgJson.version
+          if (semver.satisfies(existingVer, allShims[name])) {
+            install = false
+          }
+        }
+
+        if (!install) {
+          console.log('not reinstalling ' + name)
+          shimPkgNames.splice(shimPkgNames.indexOf(name), 1)
         }
 
         cb()
@@ -86,6 +99,10 @@ function installShims (modulesToShim, done) {
     }
   }), function (err) {
     if (err) throw err
+
+    if (!shimPkgNames.length) {
+      return finish()
+    }
 
     var installLine = 'npm install --save '
     shimPkgNames.forEach(function (name) {
@@ -107,7 +124,11 @@ function installShims (modulesToShim, done) {
       stdio: 'inherit'
     })
 
-    copyShim(done)
+    finish()
+
+    function finish () {
+      copyShim(done)
+    }
   })
 }
 
@@ -141,7 +162,7 @@ function fixPackageJSON (modules, file, overwrite) {
   fs.readFile(path.resolve(file), { encoding: 'utf8' }, function (err, contents) {
     if (err) throw err
 
-    var browser = pick(baseBrowser, modules)
+    // var browser = pick(baseBrowser, modules)
     var pkgJson
     try {
       pkgJson = JSON.parse(contents)
