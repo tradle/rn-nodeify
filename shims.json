@@ -18,7 +18,7 @@
   "querystring-es3": "~0.2.0",
   "react-native-level-fs": "^1.0.3",
   "react-native-udp": "~0.1.0",
-  "readable-stream": "^1.1.13",
+  "readable-stream": "~1.0.33-1",
   "stream-browserify": "^1.0.0",
   "string_decoder": "~0.10.25",
   "timers-browserify": "^1.0.1",
