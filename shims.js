@@ -1,4 +1,4 @@
-{
+module.exports = {
   "assert": "^1.1.1",
   "browserify-zlib": "~0.1.4",
   "buffer": "^3.0.3",
@@ -19,12 +19,13 @@
   "react-native-level-fs": "^1.0.3",
   "react-native-udp": "~0.1.0",
   "readable-stream": "~1.0.33-1",
+  // "stream-browserify": "substack/stream-browserify#fa56e68",
   "stream-browserify": "^1.0.0",
   "string_decoder": "~0.10.25",
   "timers-browserify": "^1.0.1",
   "tty-browserify": "0.0.0",
   "url": "~0.10.1",
   "util": "~0.10.3",
-  "utp": "0.0.8",
+  "utp": "mvayngrib/utp",
   "vm-browserify": "0.0.4"
 }

@@ -48,6 +48,22 @@ var hackers = [
       if (contents !== hacked) return hacked
     }
   },
+  // {
+  //   name: 'levelup',
+  //   regex: [
+  //     /levelup\/lib\/util\.js$/
+  //   ],
+  //   hack: function(file, contents) {
+  //     var bad = 'require(\'../package.json\')'
+  //     contents = contents.toString()
+  //     if (contents.indexOf(bad) !== -1) {
+  //       debugger
+  //       var pkg = require(path.resolve(file, '../../package.json'))
+  //       var fixed = contents.replace(bad, JSON.stringify(pkg))
+  //       return contents === fixed ? null : fixed
+  //     }
+  //   }
+  // },
   {
     name: 'non-browser',
     regex: [
@@ -251,15 +267,27 @@ var hackers = [
       /\/crypto-browserify\/rng\.js$/
     ],
     hack: function (file, contents) {
-      var hack = body(function () {
+//      var hack = body(function () {
         /*
         // react-native-hack
         try {
-          _crypto = (
+          var _crypto = (
             g.crypto || g.msCrypto || require('crypto')
           )
         } catch (err) {
           _crypto = {}
+        }
+        */
+//      })
+
+      var hack = body(function () {
+        /*
+        // react-native-hack
+        var _crypto = {
+          randomBytes: function (size) {
+            console.warn('WARNING: using insecure random number')
+            return Math.random() * size
+          }
         }
         */
       })
@@ -276,7 +304,10 @@ function hackFiles () {
 
   finder.on('file', function (file) {
     if (!/\.(js|json)$/.test(file)
-      || /\/tests?\//.test(file)) return
+      || /\/tests?\//.test(file)
+      || /\/react\-native\//.test(file)) {
+      return
+    }
 
     var matchingHackers = hackers.filter(function (hacker) {
       return hacker.regex.some(function (regex) {

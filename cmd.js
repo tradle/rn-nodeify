@@ -10,10 +10,10 @@ var deepEqual = require('deep-equal')
 var find = require('findit')
 var minimist = require('minimist')
 var parallel = require('run-parallel')
-var allShims = require('./shims.json')
-var coreList = require('./coreList.json')
-var browser = require('./browser.json')
-var pkg = require('./package.json')
+var allShims = require('./shims')
+var coreList = require('./coreList')
+var browser = require('./browser')
+var pkg = require('./package')
 var argv = minimist(process.argv.slice(2), {
   alias: {
     e: 'extra'

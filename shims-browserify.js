@@ -1,4 +1,4 @@
-{
+module.exports = {
   "assert": "~1.3.0",
   "browserify-zlib": "~0.1.2",
   "buffer": "^3.0.0",
@@ -18,6 +18,7 @@
   "querystring-es3": "~0.2.0",
   "react-native-level-fs": "^1.0.3",
   "react-native-udp": "0.0.12",
+  // "readable-stream": "~1.0.33-1",
   "readable-stream": "^2.0.2",
   "stream-browserify": "^2.0.0",
   "string_decoder": "~0.10.0",

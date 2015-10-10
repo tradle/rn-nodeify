@@ -1,4 +1,4 @@
-[
+module.exports = [
   "assert",
   "zlib",
   "buffer",
@@ -18,7 +18,7 @@
   "querystring",
   "fs",
   "dgram",
-  "readable-stream",
+  // "readable-stream",
   "stream",
   "string_decoder",
   "timers",
