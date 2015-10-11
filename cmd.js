@@ -14,6 +14,7 @@ var allShims = require('./shims')
 var coreList = require('./coreList')
 var browser = require('./browser')
 var pkg = require('./package')
+var hackFiles = require('./pkg-hacks')
 var argv = minimist(process.argv.slice(2), {
   alias: {
     e: 'extra'
@@ -56,8 +57,9 @@ function run () {
     hackPackageJSONs(toShim, function (err) {
       if (err) throw err
 
-      if (argv.extra) {
-        require(path.resolve(__dirname, 'pkg-hacks'))
+      if (argv.hack) {
+        if (argv.hack === 'all') hackFiles()
+        else hackFiles([].concat(argv.hack))
       }
     })
   })

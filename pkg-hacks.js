@@ -24,6 +24,45 @@ var path = require('path')
 //   }
 // }
 
+module.exports = function hackFiles (hacks) {
+  var finder = find('./node_modules')
+  hacks = hacks || hackers.map(function (h) { return h.name })
+
+  finder.on('file', function (file) {
+    if (!/\.(js|json)$/.test(file)
+      || /\/tests?\//.test(file)
+      || /\/react\-native\//.test(file)) {
+      return
+    }
+
+    var matchingHackers = hackers.filter(function (hacker) {
+      return hacks.indexOf(hacker.name) !== -1 && hacker.regex.some(function (regex) {
+        return regex.test(file)
+      })
+    })
+
+    if (!matchingHackers.length) return
+
+    file = path.resolve(file)
+    fs.readFile(file, { encoding: 'utf8' }, onread)
+
+    function onread (err, str) {
+      if (err) throw err
+
+      var hacked = matchingHackers.reduce(function (hacked, hacker) {
+        return hacker.hack(file, hacked || str) || hacked
+      }, str)
+
+      if (hacked && hacked !== str) {
+        console.log('hacking', file)
+        fs.writeFile(file, hacked)
+      }
+    }
+  })
+}
+
+
+
 // loadDeps(hackFiles)
 
 var hackers = [
@@ -64,6 +103,35 @@ var hackers = [
   //     }
   //   }
   // },
+  {
+    name: 'levelup',
+    regex: [
+      /levelup\/lib\/util\.js$/
+    ],
+    hack: function(file, contents) {
+      var fixed = contents
+      fixed = fixed.replace("require('../package.json').devDependencies.leveldown", "'1.0.0'")
+      fixed = fixed.replace("require('asyncstorage-down/package.json').version", "'1.0.0'")
+
+      // var bad = '\'leveldown'
+      // var fixed = contents.replace(/\'leveldown/g, '\'asyncstorage-down')
+      // bad = 'require(\'../package.json\')'
+      // if (fixed.indexOf(bad) !== -1) {
+      //   var pkg = require(path.resolve(file, '../../package.json'))
+      //   fixed = fixed.replace(bad, JSON.stringify(pkg))
+      // }
+
+      // bad = "require('asyncstorage-down/package')"
+      // if (fixed.indexOf(bad) !== -1) {
+      //   console.log(path.dirname(file))
+      //   console.log(resolve.sync('asyncstorage-down'), { basedir: path.dirname(file) })
+      //   var pkg = require(path.resolve(file, '../../node_modules/asyncstorage-down/package.json'))
+      //   fixed = fixed.replace(bad, JSON.stringify(pkg))
+      // }
+
+      return contents === fixed ? null : fixed
+    }
+  },
   {
     name: 'non-browser',
     regex: [
@@ -126,7 +194,7 @@ var hackers = [
     }
   },
   {
-    name: 'webtorrent stuff',
+    name: 'webtorrentstuff',
     regex: [
       /\/torrent\-discovery\/package.json$/,
       /\/webtorrent\/package.json$/,
@@ -260,80 +328,32 @@ var hackers = [
         return contents.replace(evil, hack)
       }
     }
-  },
-  {
-    name: 'crypto-browserify',
-    regex: [
-      /\/crypto-browserify\/rng\.js$/
-    ],
-    hack: function (file, contents) {
-//      var hack = body(function () {
-        /*
-        // react-native-hack
-        try {
-          var _crypto = (
-            g.crypto || g.msCrypto || require('crypto')
-          )
-        } catch (err) {
-          _crypto = {}
-        }
-        */
-//      })
-
-      var hack = body(function () {
-        /*
-        // react-native-hack
-        var _crypto = {
-          randomBytes: function (size) {
-            console.warn('WARNING: using insecure random number')
-            return Math.random() * size
-          }
-        }
-        */
-      })
-
-      if (contents.indexOf('react-native-hack') !== -1) return
-
-      return contents.replace(/_crypto\s+=\s+\(\s+g\.crypto\s+\|\|\s+g.msCrypto\s+\|\|\s+require\('crypto'\)\s+\)/, hack)
-    }
   }
+  // ,
+  // {
+  //   name: 'crypto-browserify',
+  //   regex: [
+  //     /\/crypto-browserify\/rng\.js$/
+  //   ],
+  //   hack: function (file, contents) {
+  //     var hack = body(function () {
+/*
+  //       // react-native-hack
+  //       var _crypto = {
+  //         randomBytes: function (size) {
+  //           console.warn('WARNING: using insecure random number')
+  //           return Math.random() * size
+  //         }
+  //       }
+*/
+  //     })
+
+  //     if (contents.indexOf('react-native-hack') !== -1) return
+
+  //     return contents.replace(/_crypto\s+=\s+\(\s+g\.crypto\s+\|\|\s+g.msCrypto\s+\|\|\s+require\('crypto'\)\s+\)/, hack)
+  //   }
+  // }
 ]
-
-function hackFiles () {
-  var finder = find('./node_modules')
-
-  finder.on('file', function (file) {
-    if (!/\.(js|json)$/.test(file)
-      || /\/tests?\//.test(file)
-      || /\/react\-native\//.test(file)) {
-      return
-    }
-
-    var matchingHackers = hackers.filter(function (hacker) {
-      return hacker.regex.some(function (regex) {
-        return regex.test(file)
-      })
-    })
-
-    if (!matchingHackers.length) return
-
-    file = path.resolve(file)
-    fs.readFile(file, { encoding: 'utf8' }, onread)
-
-    function onread (err, str) {
-      if (err) throw err
-
-      var hacked = matchingHackers.reduce(function (hacked, hacker) {
-        return hacker.hack(file, hacked || str) || hacked
-      }, str)
-
-      if (hacked && hacked !== str) {
-        console.log('hacking', file)
-        fs.writeFile(file, hacked)
-      }
-    }
-  })
-}
 
 function rewireMain (pkg) {
   if (typeof pkg.browser === 'string') {
@@ -357,5 +377,3 @@ function body (fn) {
 function prettify (json) {
   return JSON.stringify(json, null, 2)
 }
-
-hackFiles()
