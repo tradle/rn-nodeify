@@ -163,6 +163,8 @@ function hackPackageJSONs (modules, done) {
 }
 
 function fixPackageJSON (modules, file, overwrite) {
+  if (/\/react\-native\//.test(file)) return
+
   fs.readFile(path.resolve(file), { encoding: 'utf8' }, function (err, contents) {
     if (err) throw err
 
