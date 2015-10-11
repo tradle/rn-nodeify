@@ -30,8 +30,7 @@ module.exports = function hackFiles (hacks) {
 
   finder.on('file', function (file) {
     if (!/\.(js|json)$/.test(file)
-      || /\/tests?\//.test(file)
-      || /\/react\-native\//.test(file)) {
+      || /\/tests?\//.test(file)) {
       return
     }
 
@@ -74,6 +73,8 @@ var hackers = [
       /webtorrent\/lib\/fs-storage\.js/
     ],
     hack: function(file, contents) {
+      if (isInReactNative(file)) return
+
       contents = contents.toString()
       var fixed = contents.replace(/fs\.existsSync\([^\)]*\)/g, 'false')
       return contents === fixed ? null : fixed
@@ -83,6 +84,8 @@ var hackers = [
     name: 'bufferequal',
     regex: [/rudp\/lib\/bufferEqual\.js/],
     hack: function (file, contents) {
+      if (isInReactNative(file)) return
+
       var hacked = "module.exports = require('buffer-equal')"
       if (contents !== hacked) return hacked
     }
@@ -104,14 +107,30 @@ var hackers = [
   //   }
   // },
   {
+    name: 'webworkerthreads',
+    regex: [
+      /otr\/lib\/(dsa|otr)\.js/
+    ],
+    hack: function (file, contents) {
+      if (isInReactNative(file)) return
+
+      var fixed = contents
+      fixed = fixed.replace("require('webworker-threads').Worker", "null")
+      return contents === fixed ? null : fixed
+    }
+  },
+  {
     name: 'levelup',
     regex: [
       /levelup\/lib\/util\.js$/
     ],
     hack: function(file, contents) {
+      if (isInReactNative(file)) return
+
       var fixed = contents
       fixed = fixed.replace("require('../package.json').devDependencies.leveldown", "'1.0.0'")
-      fixed = fixed.replace("require('asyncstorage-down/package.json').version", "'1.0.0'")
+      fixed = fixed.replace("require('leveldown/package').version", "'1.0.0'")
+      fixed = fixed.replace("require('leveldown')", "null")
 
       // var bad = '\'leveldown'
       // var fixed = contents.replace(/\'leveldown/g, '\'asyncstorage-down')
@@ -138,6 +157,8 @@ var hackers = [
       /level-jobs\/package\.json$/
     ],
     hack: function(file, contents) {
+      if (isInReactNative(file)) return
+
       var pkg
       try {
         pkg = JSON.parse(contents)
@@ -158,6 +179,8 @@ var hackers = [
       /simple\-get\/package\.json$/
     ],
     hack: function (file, contents) {
+      if (isInReactNative(file)) return
+
       var pkg = JSON.parse(contents)
       if (pkg.browser['unzip-response'] === false) {
         delete pkg.browser['unzip-response']
@@ -171,6 +194,8 @@ var hackers = [
       /package\.json$/
     ],
     hack: function (file, contents) {
+      if (isInReactNative(file)) return
+
       var pkg
       try {
         pkg = JSON.parse(contents)
@@ -201,6 +226,8 @@ var hackers = [
       /\/load-ip-set\/package.json$/,
     ],
     hack: function (file, contents) {
+      if (isInReactNative(file)) return
+
       var pkg = JSON.parse(contents)
       var browser = pkg.browser
       var save
@@ -234,6 +261,8 @@ var hackers = [
       /react\-packager\/.*\/DependencyGraph\/index\.js/
     ],
     hack: function (file, contents) {
+      if (isInReactNative(file)) return
+
       var evil = 'var id = sansExtJs(name);'
       if (contents.indexOf(evil) !== -1) {
         return contents.replace(evil, 'var id = name;')
@@ -246,6 +275,8 @@ var hackers = [
       /ecurve\/lib\/names\.js/
     ],
     hack: function (file, contents) {
+      if (isInReactNative(file)) return
+
       var evil = 'var curves = require(\'./curves\')'
       if (contents.indexOf(evil) !== -1) {
         return contents.replace(evil, 'var curves = require(\'./curves.json\')')
@@ -258,6 +289,8 @@ var hackers = [
       /assert\/assert.js$/
     ],
     hack: function (file, contents) {
+      if (isInReactNative(file)) return
+
       var evil = 'var util = require(\'util/\');'
       if (contents.indexOf(evil) !== -1) {
         return contents.replace(evil, 'var util = require(\'util\');')
@@ -287,11 +320,26 @@ var hackers = [
   //   }
   // },
   {
+    name: 'bytewise',
+    regex: [
+      /bytewise\/bytewise\.js$/
+    ],
+    hack: function(file, contents) {
+      if (isInReactNative(file)) return
+
+      var fixed = contents
+      fixed = fixed.replace("require('typewise')", "null")
+      return contents === fixed ? null : fixed
+    }
+  },
+  {
     name: 'unzip-response',
     regex: [
       /unzip\-response\/index\.js$/
     ],
     hack: function (file, contents) {
+      if (isInReactNative(file)) return
+
       var hack = ';res.headers = res.headers || {};'
       if (contents.indexOf(hack) !== -1) return
 
@@ -323,36 +371,48 @@ var hackers = [
       */
       })
 
-      var evil = 'return browser[name] || name'
-      if (contents.indexOf(evil) !== -1) {
-        return contents.replace(evil, hack)
-      }
+      var fixed = contents.replace('return browser[name] || name', hack)
+      fixed = contents.replace("this._cache.get(this.path, 'haste'", "this._cache.get(this.path, 'package-haste'")
+      fixed = contents.replace("this._cache.get(this.path, 'name'", "this._cache.get(this.path, 'package-name'")
+      return fixed === contents ? null : fixed
+    }
+  },
+  {
+    name: 'crypto-browserify',
+    regex: [
+      /\/crypto-browserify\/rng\.js$/
+    ],
+    hack: function (file, contents) {
+      // var hack = body(function () {
+
+      //   // react-native-hack
+      //   var _crypto = {
+      //     randomBytes: function (size) {
+      //       console.warn('WARNING: using insecure random number')
+      //       return Math.random() * size
+      //     }
+      //   }
+
+      // })
+
+      var hack = body(function () {
+         /*
+         // react-native-hack
+         try {
+           var _crypto = (
+             g.crypto || g.msCrypto || require('crypto')
+           )
+         } catch (err) {
+           _crypto = {}
+         }
+         */
+      })
+
+      if (contents.indexOf('react-native-hack') !== -1) return
+
+      return contents.replace(/_crypto\s+=\s+\(\s+g\.crypto\s+\|\|\s+g.msCrypto\s+\|\|\s+require\('crypto'\)\s+\)/, hack)
     }
   }
-  // ,
-  // {
-  //   name: 'crypto-browserify',
-  //   regex: [
-  //     /\/crypto-browserify\/rng\.js$/
-  //   ],
-  //   hack: function (file, contents) {
-  //     var hack = body(function () {
-/*
-  //       // react-native-hack
-  //       var _crypto = {
-  //         randomBytes: function (size) {
-  //           console.warn('WARNING: using insecure random number')
-  //           return Math.random() * size
-  //         }
-  //       }
-*/
-  //     })
-
-  //     if (contents.indexOf('react-native-hack') !== -1) return
-
-  //     return contents.replace(/_crypto\s+=\s+\(\s+g\.crypto\s+\|\|\s+g.msCrypto\s+\|\|\s+require\('crypto'\)\s+\)/, hack)
-  //   }
-  // }
 ]
 
 function rewireMain (pkg) {
@@ -376,4 +436,8 @@ function body (fn) {
 
 function prettify (json) {
   return JSON.stringify(json, null, 2)
+}
+
+function isInReactNative (file) {
+  return /\/react\-native\//.test(file)
 }
