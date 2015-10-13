@@ -1,6 +1,6 @@
 {
   "name": "rn-nodeify",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "preferGlobal": true,
   "bin": "./cmd.js",
   "license": "MIT",
