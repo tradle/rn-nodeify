@@ -16,7 +16,7 @@ module.exports = {
   "process": "^0.11.0",
   "punycode": "^1.2.4",
   "querystring-es3": "~0.2.0",
-  "react-native-level-fs": "^1.0.3",
+  "react-native-level-fs": "^2.0.0",
   "react-native-udp": "^1.0.0",
   "readable-stream": "~1.0.33-1",
   // "stream-browserify": "substack/stream-browserify#fa56e68",
