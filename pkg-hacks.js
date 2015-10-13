@@ -373,7 +373,7 @@ var hackers = [
 
       var fixed = contents
       fixed = fixed.replace('return browser[name] || name', hack)
-      fixed = fixed.replace("this._cache.get(this.path, 'haste'", "this._cache.get(this.path, 'package-haste'")
+      // fixed = fixed.replace("this._cache.get(this.path, 'haste'", "this._cache.get(this.path, 'package-haste'")
       fixed = fixed.replace("this._cache.get(this.path, 'name'", "this._cache.get(this.path, 'package-name'")
       return fixed === contents ? null : fixed
     }
