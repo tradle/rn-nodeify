@@ -51,6 +51,10 @@ function run () {
     '_stream_passthrough'
   )
 
+  if (toShim.indexOf('crypto') !== -1) {
+    toShim.push('react-native-randombytes')
+  }
+
   installShims(toShim, function (err) {
     if (err) throw err
 

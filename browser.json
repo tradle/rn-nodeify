@@ -2,7 +2,7 @@
   "zlib": "browserify-zlib",
   "console": "console-browserify",
   "constants": "constants-browserify",
-  "crypto": "crypto-browserify",
+  "crypto": "react-native-crypto",
   "dns": "dns.js",
   "net": "utp",
   "domain": "domain-browser",
