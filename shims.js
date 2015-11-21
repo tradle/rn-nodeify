@@ -27,6 +27,6 @@ module.exports = {
   "tty-browserify": "0.0.0",
   "url": "~0.10.1",
   "util": "~0.10.3",
-  "utp": "mvayngrib/utp#6ebad0d",
+  "@tradle/utp": "^0.0.8",
   "vm-browserify": "0.0.4"
 }
