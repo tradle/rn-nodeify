@@ -48,7 +48,8 @@ function run () {
     '_stream_readable',
     '_stream_writable',
     '_stream_duplex',
-    '_stream_passthrough'
+    '_stream_passthrough',
+    'readable-stream'
   )
 
   if (toShim.indexOf('crypto') !== -1) {
