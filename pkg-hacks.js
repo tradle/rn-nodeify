@@ -75,9 +75,18 @@ var hackers = [
     hack: function(file, contents) {
       if (isInReactNative(file)) return
 
-      contents = contents.toString()
       var fixed = contents.replace(/fs\.existsSync\([^\)]*\)/g, 'false')
       return contents === fixed ? null : fixed
+    }
+  },
+  {
+    name: 'rusha',
+    regex: [
+      /\/rusha\/rusha\.js/
+    ],
+    hack: function (file, contents) {
+      var fixed = contents.replace(/typeof\ FileReaderSync \!\=\= \'undefined\'/, 'false')
+      return contents === fixed ? null  : fixed
     }
   },
   {
