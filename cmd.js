@@ -13,7 +13,8 @@ var parallel = require('run-parallel')
 var allShims = require('./shims')
 var coreList = require('./coreList')
 var browser = require('./browser')
-var pkg = require('./package')
+var pkgPath = path.join(process.cwd(), 'package.json')
+var pkg = require(pkgPath)
 var hackFiles = require('./pkg-hacks')
 var argv = minimist(process.argv.slice(2), {
   alias: {
@@ -113,28 +114,34 @@ function installShims (modulesToShim, done) {
       return finish()
     }
 
-    var installLine = 'npm install --save '
+    // var installLine = 'npm install --save '
     shimPkgNames.forEach(function (name) {
-      if (allShims[name].indexOf('/') === -1) {
-        console.log('installing from npm', name)
-        installLine += name + '@' + allShims[name]
-      } else {
-        // github url
-        console.log('installing from github', name)
-        installLine += allShims[name].match(/([^\/]+\/[^\/]+)$/)[1]
-      }
+      // if (allShims[name].indexOf('/') === -1) {
+      //   console.log('installing from npm', name)
+      //   installLine += name + '@' + allShims[name]
+      // } else {
+      //   // github url
+      //   console.log('installing from github', name)
+      //   installLine += allShims[name].match(/([^\/]+\/[^\/]+)$/)[1]
+      // }
 
-      installLine += ' '
+      pkg.dependencies[name] = allShims[name]
+      // installLine += ' '
     })
 
-    proc.execSync(installLine, {
-      cwd: process.cwd(),
-      env: process.env,
-      stdio: 'inherit'
+    fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2), function (err) {
+      if (err) throw err
+
+      proc.execSync('npm install --ignore-scripts', {
+        cwd: process.cwd(),
+        env: process.env,
+        stdio: 'inherit'
+      })
+
+      finish()
     })
 
-    finish()
-
+    // console.log('installing:', installLine)
     function finish () {
       copyShim(done)
     }
