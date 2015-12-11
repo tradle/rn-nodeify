@@ -68,6 +68,16 @@ var hackers = [
   // don't need this as soon as react native
   // stops ignoring webtorrent/package.json "browser": "./lib/fs-storage.js": false
   {
+    name: 'debug',
+    regex: [
+      /debug\/browser\.js/
+    ],
+    hack: function (file, contents) {
+      var fixed = contents.replace("('WebkitAppearance' in document.documentElement.style)", 'true')
+      return contents === fixed ? null : fixed
+    }
+  },
+  {
     name: 'fssync',
     regex: [
       /webtorrent\/lib\/fs-storage\.js/
