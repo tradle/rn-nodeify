@@ -19,16 +19,22 @@ var hackFiles = require('./pkg-hacks')
 var argv = minimist(process.argv.slice(2), {
   alias: {
     i: 'install',
-    e: 'extra'
+    e: 'hack',
+    h: 'help'
   }
 })
 
-run()
+if (argv.help) {
+  runHelp()
+  process.exit(0)
+} else {
+  run()
+}
 
 function run () {
   var toShim
   if (argv.install) {
-    if (argv.install === 'all') {
+    if (argv.install === true) {
       toShim = coreList
     } else {
       toShim = argv.install.split(',')
@@ -63,7 +69,7 @@ function run () {
       if (err) throw err
 
       if (argv.hack) {
-        if (argv.hack === 'all') hackFiles()
+        if (argv.hack === true) hackFiles()
         else hackFiles([].concat(argv.hack))
       }
     })
@@ -232,4 +238,23 @@ function fixPackageJSON (modules, file, overwrite) {
 
 function rethrow (err) {
   if (err) throw err
+}
+
+function runHelp () {
+  console.log(function () {
+    /*
+    Usage:
+        rn-nodeify --install dns,stream,http,https
+        rn-nodeify --install # installs all core shims
+        rn-nodeify --hack    # run all package-specific hacks
+        rn-nodeify --hack rusha,fssync   # run some package-specific hacks
+    Options:
+        -h  --help                  show usage
+        -e, --hack                  run package-specific hacks (list or leave blank to run all)
+        -i, --install               install shims (list or leave blank to install all)
+
+    Please report bugs!  https://github.com/mvayngrib/rn-nodeify/issues
+    */
+  }.toString().split(/\n/).slice(2, -2).join('\n'))
+  process.exit(0)
 }
