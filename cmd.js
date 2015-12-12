@@ -18,6 +18,7 @@ var pkg = require(pkgPath)
 var hackFiles = require('./pkg-hacks')
 var argv = minimist(process.argv.slice(2), {
   alias: {
+    i: 'install',
     e: 'extra'
   }
 })
@@ -26,40 +27,38 @@ run()
 
 function run () {
   var toShim
-  if (argv._.length) {
-    toShim = argv._
-    // if (toShim.indexOf('stream') !== -1) {
-    // }
+  if (argv.install) {
+    if (argv.install === 'all') {
+      toShim = coreList
+    } else {
+      toShim = argv.install.split(',')
+      if (toShim.indexOf('stream') !== -1) {
+        toShim.push(
+          '_stream_transform',
+          '_stream_readable',
+          '_stream_writable',
+          '_stream_duplex',
+          '_stream_passthrough',
+          'readable-stream'
+        )
+      }
+    }
 
-    // var browserB = {}
-    // toShim.forEach(function (m) {
-    //   if (allShims[m]) {
-    //     browserB[m] = allShims[m]
-    //   }
-    // })
+    if (toShim.indexOf('crypto') !== -1) {
+      toShim.push('react-native-randombytes')
+    }
 
-    // browser = browserB
+    installShims(toShim, function (err) {
+      if (err) throw err
+
+      runHacks()
+    })
   } else {
     toShim = coreList
+    runHacks()
   }
 
-  toShim = toShim.slice()
-  toShim.push(
-    '_stream_transform',
-    '_stream_readable',
-    '_stream_writable',
-    '_stream_duplex',
-    '_stream_passthrough',
-    'readable-stream'
-  )
-
-  if (toShim.indexOf('crypto') !== -1) {
-    toShim.push('react-native-randombytes')
-  }
-
-  installShims(toShim, function (err) {
-    if (err) throw err
-
+  function runHacks () {
     hackPackageJSONs(toShim, function (err) {
       if (err) throw err
 
@@ -68,7 +67,7 @@ function run () {
         else hackFiles([].concat(argv.hack))
       }
     })
-  })
+  }
 }
 
 function installShims (modulesToShim, done) {
