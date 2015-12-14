@@ -38,29 +38,36 @@ function run () {
       toShim = coreList
     } else {
       toShim = argv.install.split(',')
-      if (toShim.indexOf('stream') !== -1) {
-        toShim.push(
-          '_stream_transform',
-          '_stream_readable',
-          '_stream_writable',
-          '_stream_duplex',
-          '_stream_passthrough',
-          'readable-stream'
-        )
-      }
+        .map(function (name) {
+          return name.trim()
+        })
     }
+  } else {
+    toShim = coreList
+  }
 
-    if (toShim.indexOf('crypto') !== -1) {
-      toShim.push('react-native-randombytes')
-    }
+  if (toShim.indexOf('stream') !== -1) {
+    toShim.push(
+      '_stream_transform',
+      '_stream_readable',
+      '_stream_writable',
+      '_stream_duplex',
+      '_stream_passthrough',
+      'readable-stream'
+    )
+  }
 
+  if (toShim.indexOf('crypto') !== -1) {
+    toShim.push('react-native-randombytes')
+  }
+
+  if (argv.install) {
     installShims(toShim, function (err) {
       if (err) throw err
 
       runHacks()
     })
   } else {
-    toShim = coreList
     runHacks()
   }
 
