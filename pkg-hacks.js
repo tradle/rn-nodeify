@@ -78,6 +78,19 @@ var hackers = [
     }
   },
   {
+    name: 'pseudomap',
+    regex: [
+      /pseudomap\/map\.js/
+    ],
+    hack: function (file, contents) {
+      var bad = /(module\.exports\s+\=\s+Map[^r]+return[^}]+\})/
+      var match = contents.match(bad)
+      if (!match) return
+
+      return contents.replace(match[0], 'module.exports=Map}else{') + '}'
+    }
+  },
+  {
     name: 'fssync',
     regex: [
       /webtorrent\/lib\/fs-storage\.js/
