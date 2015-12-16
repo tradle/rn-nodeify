@@ -78,6 +78,16 @@ var hackers = [
     }
   },
   {
+    name: 'rn-bundler',
+    regex: [
+      /react\-packager\/src\/bundler\/bundle\.js/i
+    ],
+    hack: function (file, contents) {
+      var fixed = contents.replace(/(fromString: true,)(\s+)(outSourceMap:\s+'bundle\.js',)/, '$1$2mangle:false,$2$3')
+      return contents === fixed ? null : fixed
+    }
+  },
+  {
     name: 'pseudomap',
     regex: [
       /pseudomap\/map\.js/
