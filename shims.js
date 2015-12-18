@@ -5,7 +5,7 @@ module.exports = {
   "inherits": "^2.0.1",
   "console-browserify": "^1.1.0",
   "constants-browserify": "~0.0.1",
-  "react-native-crypto": "mvayngrib/react-native-crypto#5fd80fc",
+  "react-native-crypto": "mvayngrib/react-native-crypto#92ebb1b",
   "react-native-randombytes": "^1.0.1",
   "dns.js": "^1.0.1",
   "domain-browser": "^1.1.1",
