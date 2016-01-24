@@ -68,6 +68,18 @@ var hackers = [
   // don't need this as soon as react native
   // stops ignoring webtorrent/package.json "browser": "./lib/fs-storage.js": false
   {
+    name: 'has-cors',
+    regex: [
+      /has-cors\/index\.js/,
+      /socket\.io\.js/,
+      /engine\.io\.js/
+    ],
+    hack: function (file, contents) {
+      var fixed = contents.replace("'withCredentials' in new XMLHttpRequest()", 'true')
+      return contents === fixed ? null : fixed
+    }
+  },
+  {
     name: 'debug',
     regex: [
       /debug\/browser\.js/
