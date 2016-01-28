@@ -27,3 +27,5 @@ rn-nodeify --install --hack
 # install specific shims
 rn-nodeify --install "fs,dgram,process,path,console"
 ```
+
+Also, see this [example React Native app](https://github.com/mvayngrib/adexample)
