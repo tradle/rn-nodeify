@@ -1,6 +1,6 @@
 # rn-nodeify
 
-Run after npm install and you can use node core modules in your React Native app.
+Run after npm install and you can use node core modules and npm modules that use them in your React Native app.
 
 ## Usage
 
