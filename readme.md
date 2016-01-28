@@ -10,6 +10,22 @@ rn-nodeify <options>
 
 ## Options
 
---extra
+```
+--install     install node core shims (default: install all), 
+              fix the "browser" (later "react-native") fields 
+              in the package.json's of dependencies
+--hack        hack individual packages that are known to make 
+              the React Native packager choke
+```
 
-some package specific hacks
+### Examples
+
+```bash
+# install all shims and run package-specific hacks
+rn-nodeify --install --hack
+```
+
+```bash
+# install specific shims
+rn-nodeify --install "fs,dgram,process,path,console"
+```
