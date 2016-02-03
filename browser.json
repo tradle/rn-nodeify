@@ -1,4 +1,5 @@
 {
+  "q": "bluebird-q",
   "zlib": "browserify-zlib",
   "console": "console-browserify",
   "constants": "constants-browserify",

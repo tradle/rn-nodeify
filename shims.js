@@ -1,4 +1,5 @@
 module.exports = {
+  "bluebird-q": "latest",
   "assert": "^1.1.1",
   "browserify-zlib": "~0.1.4",
   "buffer": "^4.9.1",
