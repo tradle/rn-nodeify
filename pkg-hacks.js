@@ -68,6 +68,20 @@ var hackers = [
   // don't need this as soon as react native
   // stops ignoring webtorrent/package.json "browser": "./lib/fs-storage.js": false
   {
+    name: 'bluebird',
+    regex: [
+      /bluebird\/js\/main\/captured_trace\.js$/
+    ],
+    hack: function (file, contents) {
+      var fixed = contents.replace(
+        /fireGlobalEvent \= \(function\(\) \{\s{1}/,
+        'fireGlobalEvent = (function() {var self = global;'
+      )
+
+      return contents === fixed ? null : fixed
+    }
+  },
+  {
     name: 'has-cors',
     regex: [
       /has-cors\/index\.js/,
