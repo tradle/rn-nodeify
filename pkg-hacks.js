@@ -109,7 +109,7 @@ var hackers = [
       /react\-packager\/src\/bundler\/bundle\.js/i
     ],
     hack: function (file, contents) {
-      var fixed = contents.replace(/(fromString: true,)(\s+)(outSourceMap:\s+'bundle\.js',)/, '$1$2mangle:false,$2$3')
+      var fixed = contents.replace(/(fromString: true,)(\s+)(outSourceMap)/, '$1$2mangle:false,$2$3')
       return contents === fixed ? null : fixed
     }
   },
