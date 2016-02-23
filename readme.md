@@ -46,7 +46,7 @@ It is recommended to add this command to the "postinstall" script in your projec
 
 
 - rn-nodeify won't work with modules that are added using `npm link`.
-- modules that contain a .babelrc will cause problems with the latest react-native version (0.20 at this time), remove them after installation (`rm node_modules/*/.babelrc`)
+- modules that contain a .babelrc will cause problems with the latest react-native version (0.20 at this time), remove them after installation (`find node_modules/**/.babelrc | xargs rm`)
 - when installing a package from git, the postinstall hook isn't triggered, run it manually instead (`npm run postinstall`)
 - restart the react-native packager after installing a module!
 - removing the packager cache helps as well sometimes (`rm -fr $TMPDIR/react-*`)
