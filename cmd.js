@@ -208,10 +208,10 @@ function fixPackageJSON (modules, file, overwrite) {
 
     // if (pkgJson.name === 'readable-stream') debugger
 
-    var orgBrowser = pkgJson.browser || {}
+    var orgBrowser = pkgJson['react-native'] || pkgJson.browser || pkgJson.browserify || {}
     if (typeof orgBrowser === 'string') {
       orgBrowser = {}
-      orgBrowser[pkgJson.main || 'index.js'] = pkgJson.browser
+      orgBrowser[pkgJson.main || 'index.js'] = pkgJson['react-native'] || pkgJson.browser || pkgJson.browserify
     }
 
     var depBrowser = extend({}, orgBrowser)
@@ -237,7 +237,8 @@ function fixPackageJSON (modules, file, overwrite) {
     })
 
     if (!deepEqual(orgBrowser, depBrowser)) {
-      pkgJson.browser = depBrowser
+      pkgJson.browser = pkgJson['react-native'] = depBrowser
+      delete pkgJson.browserify
       fs.writeFile(file, JSON.stringify(pkgJson, null, 2), rethrow)
     }
   })
