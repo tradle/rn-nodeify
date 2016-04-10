@@ -4,7 +4,7 @@
   "constants": "constants-browserify",
   "crypto": "react-native-crypto",
   "dns": "dns.js",
-  "net": "@tradle/utp",
+  "net": "react-native-tcp",
   "domain": "domain-browser",
   "http": "react-native-http",
   "https": "https-browserify",
