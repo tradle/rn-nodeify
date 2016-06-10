@@ -82,6 +82,35 @@ var hackers = [
     }
   },
   {
+    name: 'stream-browserify',
+    regex: [
+      /stream-browserify\/index\.js$/
+    ],
+    hack: function (file, contents) {
+      var fixed = contents.replace(
+        'module.exports = Stream;',
+        'module.exports = global.StreamModule = Stream'
+      )
+
+      return contents === fixed ? null : fixed
+    }
+  },
+  {
+    name: 'readable-stream',
+    regex: [
+      /readable-stream\/lib\/_stream_(readable|writable)\.js$/,
+      /readable-stream\/readable\.js$/
+    ],
+    hack: function (file, contents) {
+      var fixed = contents.replace(
+        "var Stream = require('stream');",
+        "var Stream = global.StreamModule || require('stream')"
+      )
+
+      return contents === fixed ? null : fixed
+    }
+  },
+  {
     name: 'has-cors',
     regex: [
       /has-cors\/index\.js/,
