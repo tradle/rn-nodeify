@@ -5,6 +5,9 @@ var proc = require('child_process')
 var fs = require('fs-extra')
 var find = require('findit')
 var path = require('path')
+
+var localHackersFilename = '.rn-nodeify-hacks'
+var cwd = process.cwd()
 // var thisPkg = require('./package.json')
 
 // function loadDeps() {
@@ -26,7 +29,7 @@ var path = require('path')
 
 module.exports = function hackFiles (hacks) {
   var finder = find('./node_modules')
-  hacks = hacks || hackers.map(function (h) { return h.name })
+  hacks = hacks || getHackers(hackers).map(function (h) { return h.name })
 
   finder.on('file', function (file) {
     if (!/\.(js|json)$/.test(file)
@@ -60,7 +63,28 @@ module.exports = function hackFiles (hacks) {
   })
 }
 
+function getHackers(hackers) {
+  var allHacks = hackers
+  var localHacksFile = path.join(cwd, localHackersFilename)
 
+  try {
+    console.log(localHacksFile)
+    fs.accessSync(localHacksFile)
+    var localHacks = require(localHacksFile)
+
+    if (localHacks && localHacks.length) {
+      console.log('Loaded ' + localHacks.length + ' hacks from ' + localHacksFile)
+
+      allHacks = allHacks.concat(localHacks)
+      console.log(allHacks)
+    }
+  } catch (e) {
+    console.log('Not loading local hacks')
+  }
+
+
+  return allHacks
+}
 
 // loadDeps(hackFiles)
 
@@ -76,35 +100,6 @@ var hackers = [
       var fixed = contents.replace(
         /fireGlobalEvent \= \(function\(\) \{\s{1}/,
         'fireGlobalEvent = (function() {var self = global;'
-      )
-
-      return contents === fixed ? null : fixed
-    }
-  },
-  {
-    name: 'stream-browserify',
-    regex: [
-      /stream-browserify\/index\.js$/
-    ],
-    hack: function (file, contents) {
-      var fixed = contents.replace(
-        'module.exports = Stream;',
-        'module.exports = global.StreamModule = Stream'
-      )
-
-      return contents === fixed ? null : fixed
-    }
-  },
-  {
-    name: 'readable-stream',
-    regex: [
-      /readable-stream\/lib\/_stream_(readable|writable)\.js$/,
-      /readable-stream\/readable\.js$/
-    ],
-    hack: function (file, contents) {
-      var fixed = contents.replace(
-        "var Stream = require('stream');",
-        "var Stream = global.StreamModule || require('stream')"
       )
 
       return contents === fixed ? null : fixed
