@@ -5,6 +5,9 @@ var proc = require('child_process')
 var fs = require('fs-extra')
 var find = require('findit')
 var path = require('path')
+
+var localHackersFilename = '.rn-nodeify-hacks'
+var cwd = process.cwd()
 // var thisPkg = require('./package.json')
 
 // function loadDeps() {
@@ -26,7 +29,7 @@ var path = require('path')
 
 module.exports = function hackFiles (hacks) {
   var finder = find('./node_modules')
-  hacks = hacks || hackers.map(h => h.name)
+  hacks = hacks || getHackers(hackers).map(function (h) { return h.name })
 
   finder.on('file', function (file) {
     if (!/\.(js|json)$/.test(file) ||
@@ -60,6 +63,26 @@ module.exports = function hackFiles (hacks) {
       }
     }
   })
+}
+
+function getHackers(hackers) {
+  var allHacks = hackers
+  var localHacksFile = path.join(cwd, localHackersFilename)
+
+  try {
+    var localHacks = require(localHacksFile)
+
+    if (localHacks && localHacks.length) {
+      console.log('Loaded ' + localHacks.length + ' hacks from ' + localHacksFile)
+
+      allHacks = allHacks.concat(localHacks)
+    }
+  } catch (e) {
+    console.log('Not loading local hacks')
+  }
+
+
+  return allHacks
 }
 
 // loadDeps(hackFiles)
