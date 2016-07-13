@@ -135,10 +135,13 @@ var hackers = [
   {
     name: 'rn-bundler',
     regex: [
-      /react\-packager\/src\/bundler\/bundle\.js/i
+      /react\-packager\/src\/bundler\/bundle\.js/i,
+      /react\-packager\/src\/JSTransformer\/worker\/minify\.js/i,
     ],
     hack: function (file, contents) {
-      var fixed = contents.replace(/(fromString: true,)(\s+)(outSourceMap)/, '$1$2mangle:false,$2$3')
+      if (contents.indexOf('mangle:false') !== -1) return
+
+      var fixed = contents.replace(/(\s+)(fromString: true,)/, '$1$2$1mangle:false,')
       return contents === fixed ? null : fixed
     }
   },
