@@ -42,13 +42,49 @@ It is recommended to add this command to the "postinstall" script in your projec
 }
 ```
 
-## Please note...
+rn-nodeify will create a `shim.js` file in your project root directory. The first line in index.ios.js / index.android.js should be to `import` it (NOT `require` it!)
 
+```js
+import './shim'
+```
+
+### Example Apps / Workflows
+
+* the [react-native-crypto](https://github.com/mvayngrib/react-native-crypto) package has an example workflow for using crypto in a React Native app
+* this [example React Native app](https://github.com/mvayngrib/adexample) shows how you can use [levelup](https://github.com/Level/levelup) in React Native
+
+### Example Workflow
+
+copied from [react-native-crypto](https://github.com/mvayngrib/react-native-crypto)
+
+1. Install and shim
+  ```sh
+  npm i --save react-native-crypto
+  # install peer deps
+  npm i --save react-native-randombytes
+  react-native link react-native-randombytes
+  # install latest rn-nodeify
+  npm i --save-dev mvayngrib/rn-nodeify
+  # install node core shims and recursively hack package.json files
+  # in ./node_modules to add/update the "browser"/"react-native" field with relevant mappings
+  ./node_modules/.bin/rn-nodeify --hack --install
+  ```
+
+2. `rn-nodeify` will create a `shim.js` in the project root directory
+  ```js
+  // index.ios.js or index.android.js
+  // make sure you use `import` and not `require`!
+  import './shim.js'
+  // ...the rest of your code
+  import crypto from 'crypto'
+  // use crypto
+  console.log(crypto.randomBytes(32).toString('hex'))
+  ```
+
+## Please note...
 
 - rn-nodeify won't work with modules that are added using `npm link`.
 - modules that contain a .babelrc will cause problems with the latest react-native version (0.20 at this time), remove them after installation (`rm node_modules/*/.babelrc`)
 - when installing a package from git, the postinstall hook isn't triggered, run it manually instead (`npm run postinstall`)
 - restart the react-native packager after installing a module!
 - removing the packager cache helps as well sometimes (`rm -fr $TMPDIR/react-*`)
-
-Also, see this [example React Native app](https://github.com/mvayngrib/adexample)
