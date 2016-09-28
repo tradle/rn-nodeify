@@ -68,15 +68,12 @@ function getHackers(hackers) {
   var localHacksFile = path.join(cwd, localHackersFilename)
 
   try {
-    console.log(localHacksFile)
-    fs.accessSync(localHacksFile)
     var localHacks = require(localHacksFile)
 
     if (localHacks && localHacks.length) {
       console.log('Loaded ' + localHacks.length + ' hacks from ' + localHacksFile)
 
       allHacks = allHacks.concat(localHacks)
-      console.log(allHacks)
     }
   } catch (e) {
     console.log('Not loading local hacks')
@@ -507,7 +504,18 @@ var hackers = [
 
       return contents.replace(/_crypto\s+=\s+\(\s+g\.crypto\s+\|\|\s+g.msCrypto\s+\|\|\s+require\('crypto'\)\s+\)/, hack)
     }
-  }
+  },
+  {
+    name: 'version',
+    regex: [/pbkdf2/],
+    hack: function (file, contents) {
+      if (isInReactNative(file)) return
+
+      var fixed = contents.replace('process.version', '"' + process.version + '"')
+
+      return contents === fixed ? null : fixed
+    }
+  },
 ]
 
 function rewireMain (pkg) {
