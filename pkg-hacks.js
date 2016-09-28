@@ -62,8 +62,6 @@ module.exports = function hackFiles (hacks) {
   })
 }
 
-
-
 // loadDeps(hackFiles)
 
 var hackers = [
@@ -515,7 +513,18 @@ var hackers = [
 
       return contents.replace(/_crypto\s+=\s+\(\s+g\.crypto\s+\|\|\s+g.msCrypto\s+\|\|\s+require\('crypto'\)\s+\)/, hack)
     }
-  }
+  },
+  {
+    name: 'version',
+    regex: [/pbkdf2/],
+    hack: function (file, contents) {
+      if (isInReactNative(file)) return
+
+      var fixed = contents.replace('process.version', '"' + process.version + '"')
+
+      return contents === fixed ? null : fixed
+    }
+  },
 ]
 
 function rewireMain (pkg) {
