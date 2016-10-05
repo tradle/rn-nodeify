@@ -48,6 +48,10 @@ rn-nodeify will create a `shim.js` file in your project root directory. The firs
 import './shim'
 ```
 
+### Local hacks
+
+You can create your own local hacks by adding a file named `.rn-nodeify-hacks` on your cwd path. This file should `export` a javascript array with the same syntax as the `hackers` variable in the `pkg-hacks.js` file. You can use this functionality to extend the the `--hack` capabilities of this package.
+
 ### Example Apps / Workflows
 
 * the [react-native-crypto](https://github.com/mvayngrib/react-native-crypto) package has an example workflow for using crypto in a React Native app
