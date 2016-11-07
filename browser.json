@@ -8,7 +8,7 @@
   "domain": "domain-browser",
   "http": "react-native-http",
   "https": "https-browserify",
-  "os": "os-browserify",
+  "os": "react-native-os",
   "path": "path-browserify",
   "querystring": "querystring-es3",
   "fs": "react-native-level-fs",
