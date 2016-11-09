@@ -12,7 +12,7 @@ module.exports = {
   "events": "^1.0.0",
   "react-native-http": "tradle/react-native-http#834492d",
   "https-browserify": "~0.0.0",
-  "os-browserify": "~0.1.2",
+  "react-native-os": "^1.0.1",
   "path-browserify": "0.0.0",
   "process": "^0.11.0",
   "punycode": "^1.2.4",
