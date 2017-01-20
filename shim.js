@@ -31,29 +31,17 @@ if (require('./package.json').dependencies['react-native-crypto']) {
     }
   }
 
+  const randomBytes = require('react-native-randombytes').randomBytes
+
   if (typeof window === 'object') {
     const wCrypto = window.crypto = window.crypto || {}
-    wCrypto.getRandomValues = wCrypto.getRandomValues || getRandomValues
-  }
-
-  const crypto = require('crypto')
-  const randomBytes = crypto.randomBytes
-  crypto.randomBytes = function (size, cb) {
-    if (cb) return randomBytes.apply(crypto, arguments)
-
-    const arr = new Buffer(size)
-    getRandomValues(arr)
-    return arr
-  }
-
-  crypto.getRandomValues = crypto.getRandomValues || getRandomValues
-
-  function getRandomValues (arr) {
-    // console.warn('WARNING: generating insecure psuedorandom number')
-    for (var i = 0; i < arr.length; i++) {
-      arr[i] = Math.random() * 256 | 0
+    if (!wCrypto.getRandomValues) {
+      wCrypto.getRandomValues = function getRandomValues (arr) {
+        const bytes = randomBytes(arr.length)
+        for (var i = 0; i < bytes.length; i++) {
+          arr[i] = bytes[i]
+        }
+      }
     }
-
-    return arr
   }
 }
