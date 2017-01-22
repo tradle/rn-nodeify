@@ -22,6 +22,7 @@ if (typeof localStorage !== 'undefined') {
 }
 
 if (require('./package.json').dependencies['react-native-crypto']) {
+  // important that this comes before require('crypto')
   const algos = require('browserify-sign/algos')
   if (!algos.sha256) {
     algos.sha256 = {
@@ -31,17 +32,25 @@ if (require('./package.json').dependencies['react-native-crypto']) {
     }
   }
 
-  const randomBytes = require('react-native-randombytes').randomBytes
-
+  let crypto
   if (typeof window === 'object') {
-    const wCrypto = window.crypto = window.crypto || {}
-    if (!wCrypto.getRandomValues) {
-      wCrypto.getRandomValues = function getRandomValues (arr) {
-        const bytes = randomBytes(arr.length)
-        for (var i = 0; i < bytes.length; i++) {
-          arr[i] = bytes[i]
-        }
-      }
+    crypto = window.crypto = window.crypto || {}
+  } else {
+    crypto = require('crypto')
+  }
+
+  if (!crypto.getRandomValues) {
+    crypto.getRandomValues = getRandomValues
+  }
+
+  let randomBytes
+
+  function getRandomValues (arr) {
+    if (!randomBytes) randomBytes = require('react-native-randombytes').randomBytes
+
+    const bytes = randomBytes(arr.length)
+    for (var i = 0; i < bytes.length; i++) {
+      arr[i] = bytes[i]
     }
   }
 }
