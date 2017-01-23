@@ -34,7 +34,8 @@ if (require('./package.json').dependencies['react-native-crypto']) {
 
   let crypto
   if (typeof window === 'object') {
-    crypto = window.crypto = window.crypto || {}
+    if (!window.crypto) window.crypto = {}
+    crypto = window.crypto
   } else {
     crypto = require('crypto')
   }
