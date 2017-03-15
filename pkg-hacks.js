@@ -34,6 +34,8 @@ module.exports = function hackFiles (hacks) {
       return
     }
 
+    file = file.replace(/\\/g, path.posix.sep);
+
     var matchingHackers = hackers.filter(function (hacker) {
       return hacks.indexOf(hacker.name) !== -1 && hacker.regex.some(function (regex) {
         return regex.test(file)
