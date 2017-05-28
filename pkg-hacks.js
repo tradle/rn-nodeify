@@ -232,6 +232,7 @@ var hackers = [
       var fixed = contents
       fixed = fixed.replace("require('../package.json').devDependencies.leveldown", "'1.0.0'")
       fixed = fixed.replace("require('leveldown/package').version", "'1.0.0'")
+      fixed = fixed.replace("require('leveldown/package.json').version", "'1.0.0'")
       fixed = fixed.replace("require('leveldown')", "null")
 
       // var bad = '\'leveldown'
