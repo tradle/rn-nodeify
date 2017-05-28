@@ -135,8 +135,8 @@ var hackers = [
   {
     name: 'rn-bundler',
     regex: [
-      /react\-packager\/src\/bundler\/bundle\.js/i,
-      /react\-packager\/src\/JSTransformer\/worker\/minify\.js/i,
+      /react\-(?:native\/)?packager\/src\/bundler\/bundle\.js/i,
+      /react\-(?:native\/)?packager\/src\/JSTransformer\/worker\/minify\.js/i,
     ],
     hack: function (file, contents) {
       if (contents.indexOf('mangle:false') !== -1) return
