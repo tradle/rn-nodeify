@@ -105,7 +105,8 @@ function installShims (modulesToShim, done) {
             install = false
           }
         } else {
-          var existingVer = pkgJson.version
+          var existingVerNpm5 = (/\-([^\-]+)\.tgz/.exec(pkgJson.version) || [null, null])[1]
+          var existingVer = existingVerNpm5 || pkgJson.version
           if (semver.satisfies(existingVer, allShims[name])) {
             install = false
           }
