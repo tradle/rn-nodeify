@@ -21,5 +21,6 @@
   "stream": "stream-browserify",
   "timers": "timers-browserify",
   "tty": "tty-browserify",
-  "vm": "vm-browserify"
+  "vm": "vm-browserify",
+  "tls": false
 }
