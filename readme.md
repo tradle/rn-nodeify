@@ -16,7 +16,7 @@ installs shims for core node modules, see ['./shims.js'](./shims.js) for the cur
 `rn-nodeify --hack`  
 Now that you're scared, I should also mention that there are some package-specific hacks (see [./pkg-hacks.js]('./pkg-hacks.js')), for when the React Native packager choked on something that Webpack and Browserify swallowed.
 
-If you're looking for a saner approach, check out [https://github.com/philikon/ReactNativify](ReactNativify). I haven't tested it myself, but I think [philikon](https://github.com/philikon) will be happy to help.
+If you're looking for a saner approach, check out [ReactNativify](https://github.com/philikon/ReactNativify). I haven't tested it myself, but I think [philikon](https://github.com/philikon) will be happy to help.
 
 ## Usage
 
