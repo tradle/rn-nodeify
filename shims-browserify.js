@@ -4,7 +4,7 @@ module.exports = {
   "buffer": "^3.0.0",
   "inherits": "~2.0.1",
   "console-browserify": "^1.1.0",
-  "constants-browserify": "~0.0.1",
+  "constants-browserify": "~1.0.0",
   "crypto-browserify": "~3.2.6",
   "dns.js": "^1.0.1",
   "domain-browser": "~1.1.0",
