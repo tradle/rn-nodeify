@@ -4,7 +4,7 @@ module.exports = {
   "buffer": "^4.9.1",
   "inherits": "^2.0.1",
   "console-browserify": "^1.1.0",
-  "constants-browserify": "~0.0.1",
+  "constants-browserify": "~1.0.0",
   "react-native-crypto": "^2.0.0",
   "react-native-randombytes": "^2.1.0",
   "dns.js": "^1.0.1",
