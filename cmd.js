@@ -248,6 +248,11 @@ function fixPackageJSON (modules, file, overwrite) {
       }
     }
 
+    if (pkgJson.name === 'constants-browserify') {
+      // otherwise react-native packager chokes for some reason
+      delete depBrowser.constants
+    }
+
     if (!deepEqual(orgBrowser, depBrowser)) {
       pkgJson.browser = pkgJson['react-native'] = depBrowser
       delete pkgJson.browserify
