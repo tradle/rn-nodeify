@@ -6,7 +6,7 @@ module.exports = {
   "console-browserify": "^1.1.0",
   "constants-browserify": "^1.0.0",
   "react-native-crypto": "^2.0.0",
-  "react-native-randombytes": "^2.1.0",
+  "react-native-randombytes": "^3.0.0",
   "dns.js": "^1.0.1",
   "domain-browser": "^1.1.1",
   "events": "^1.0.0",
