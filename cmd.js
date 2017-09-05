@@ -67,7 +67,7 @@ function run () {
   if (argv.install) {
     installShims({
       modules: toShim,
-      ovewrite: argv.overwrite
+      overwrite: argv.overwrite
     }, function (err) {
       if (err) throw err
 
