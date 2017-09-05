@@ -18,11 +18,19 @@ var pkg = require(pkgPath)
 var hackFiles = require('./pkg-hacks')
 var argv = minimist(process.argv.slice(2), {
   alias: {
+    h: 'help',
     i: 'install',
     e: 'hack',
-    h: 'help'
-  }
+    o: 'overwrite'
+  },
+  boolean: [
+    'install',
+    'hack',
+    'overwrite'
+  ]
 })
+
+var BASE_INSTALL_LINE = 'npm install --save'
 
 if (argv.help) {
   runHelp()
@@ -62,7 +70,10 @@ function run () {
   }
 
   if (argv.install) {
-    installShims(toShim, function (err) {
+    installShims({
+      modules: toShim,
+      ovewrite: argv.overwrite
+    }, function (err) {
       if (err) throw err
 
       runHacks()
@@ -83,14 +94,31 @@ function run () {
   }
 }
 
-function installShims (modulesToShim, done) {
-  var shimPkgNames = modulesToShim.map(function (m) {
+function installShims ({ modules, overwrite }, done) {
+  if (!overwrite) {
+    modules = modules.filter(name => {
+      const shimPackageName = browser[name] || name
+      if (pkg.dependencies[shimPackageName]) {
+        log(`not overwriting "${shimPackageName}"`)
+        return false
+      }
+
+      return true
+    })
+  }
+
+  var shimPkgNames = modules
+    .map(function (m) {
       return browser[m] || m
-    }).filter(function (shim) {
+    })
+    .filter(function (shim) {
       return !/^_/.test(shim) && shim.indexOf('/') === -1
     })
 
-  var existence = []
+  if (!shimPkgNames.length) {
+    return finish()
+  }
+
   parallel(shimPkgNames.map(function (name) {
     var modPath = path.resolve('./node_modules/' + name)
     return function (cb)  {
@@ -127,9 +155,9 @@ function installShims (modulesToShim, done) {
       return finish()
     }
 
-    var installLine = 'npm install --save '
+    var installLine = BASE_INSTALL_LINE + ' '
     shimPkgNames.forEach(function (name) {
-      const version = allShims[name]
+      let version = allShims[name]
       if (!version) return
       if (version.indexOf('/') === -1) {
         log('installing from npm', name)
@@ -147,7 +175,7 @@ function installShims (modulesToShim, done) {
     fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2), function (err) {
       if (err) throw err
 
-      if (installLine.trim() === 'npm install --save') {
+      if (installLine.trim() === BASE_INSTALL_LINE) {
         return finish()
       }
 
@@ -160,11 +188,11 @@ function installShims (modulesToShim, done) {
 
       finish()
     })
-
-    function finish () {
-      copyShim(done)
-    }
   })
+
+  function finish () {
+    copyShim(done)
+  }
 }
 
 function copyShim (cb) {
