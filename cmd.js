@@ -129,22 +129,29 @@ function installShims (modulesToShim, done) {
 
     var installLine = 'npm install --save '
     shimPkgNames.forEach(function (name) {
-      if (allShims[name].indexOf('/') === -1) {
+      const version = allShims[name]
+      if (!version) return
+      if (version.indexOf('/') === -1) {
         log('installing from npm', name)
-        installLine += name + '@' + allShims[name]
+        installLine += name + '@' + version
       } else {
         // github url
         log('installing from github', name)
-        installLine += allShims[name].match(/([^\/]+\/[^\/]+)$/)[1]
+        installLine += version.match(/([^\/]+\/[^\/]+)$/)[1]
       }
 
-      pkg.dependencies[name] = allShims[name]
+      pkg.dependencies[name] = version
       installLine += ' '
     })
 
     fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2), function (err) {
       if (err) throw err
 
+      if (installLine.trim() === 'npm install --save') {
+        return finish()
+      }
+
+      log('installing:', installLine)
       proc.execSync(installLine, {
         cwd: process.cwd(),
         env: process.env,
@@ -154,7 +161,6 @@ function installShims (modulesToShim, done) {
       finish()
     })
 
-    log('installing:', installLine)
     function finish () {
       copyShim(done)
     }
