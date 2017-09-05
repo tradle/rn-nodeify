@@ -22,12 +22,7 @@ var argv = minimist(process.argv.slice(2), {
     i: 'install',
     e: 'hack',
     o: 'overwrite'
-  },
-  boolean: [
-    'install',
-    'hack',
-    'overwrite'
-  ]
+  }
 })
 
 var BASE_INSTALL_LINE = 'npm install --save'
