@@ -104,3 +104,8 @@ copied from [react-native-crypto](https://github.com/mvayngrib/react-native-cryp
 - when installing a package from git, the postinstall hook isn't triggered, run it manually instead (`npm run postinstall`)
 - restart the react-native packager after installing a module!
 - removing the packager cache helps as well sometimes (`rm -fr $TMPDIR/react-*`)
+- rn-nodeify currently uses `npm` to install shims. PRs are welcome to make it compatible with `yarn`
+- use `npm@3`. `npm@5` has some issues that cause `node_modules` to disappear. See:
+  - https://github.com/mvayngrib/rn-nodeify/issues/42
+  - https://github.com/infinitered/ignite/issues/1101
+  - https://github.com/npm/npm/issues/16839
