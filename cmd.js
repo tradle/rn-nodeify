@@ -197,7 +197,10 @@ function installShims ({ modules, overwrite }, done) {
 
 function copyShim (cb) {
   fs.exists('./shim.js', function (exists) {
-    if (exists) return cb()
+    if (exists) {
+      log('not overwriting shim.js. For the latest version, see rn-nodeify/shim.js')
+      return cb()
+    }
 
     fs.readFile(path.join(__dirname, 'shim.js'), { encoding: 'utf8' }, function (err, contents) {
       if (err) return cb(err)
