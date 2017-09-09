@@ -19,7 +19,7 @@ module.exports = {
   "querystring-es3": "~0.2.0",
   "react-native-level-fs": "^3.0.0",
   "react-native-udp": "^2.1.0",
-  "readable-stream": "1.0.33",
+  "readable-stream": "~2.3.3",
   // "stream-browserify": "substack/stream-browserify#fa56e68",
   "stream-browserify": "^1.0.0",
   "string_decoder": "~0.10.25",
