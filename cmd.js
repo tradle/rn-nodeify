@@ -21,11 +21,12 @@ var argv = minimist(process.argv.slice(2), {
     h: 'help',
     i: 'install',
     e: 'hack',
-    o: 'overwrite'
+    o: 'overwrite',
+    y: 'yarn'
   }
 })
 
-var BASE_INSTALL_LINE = 'npm install --save'
+var BASE_INSTALL_LINE = argv.yarn ? 'yarn add' : 'npm install --save'
 
 if (argv.help) {
   runHelp()
@@ -155,7 +156,11 @@ function installShims ({ modules, overwrite }, done) {
       let version = allShims[name]
       if (!version) return
       if (version.indexOf('/') === -1) {
-        log('installing from npm', name)
+        if (argv.yarn) {
+          log('installing from yarn', name)
+        } else {
+          log('installing from npm', name)
+        }
         installLine += name + '@' + version
       } else {
         // github url
