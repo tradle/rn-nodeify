@@ -10,7 +10,7 @@ module.exports = {
   "dns.js": "^1.0.1",
   "domain-browser": "^1.1.1",
   "events": "^1.0.0",
-  "http-node": "^1.2.0",
+  "http-node": "monolith-labs/http-node",
   "https-browserify": "~0.0.0",
   "react-native-os": "^1.0.1",
   "path-browserify": "0.0.0",
