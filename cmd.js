@@ -26,7 +26,9 @@ var argv = minimist(process.argv.slice(2), {
   }
 })
 
-var BASE_INSTALL_LINE = argv.yarn ? 'yarn add' : 'npm install --save'
+var BASE_INSTALL_LINE = argv.yarn ?
+  '_rn_nodeify_flag=1 yarn add' :
+  'npm install --save'
 
 if (argv.help) {
   runHelp()
@@ -36,6 +38,12 @@ if (argv.help) {
 }
 
 function run () {
+  if (argv.yarn && process.env._rn_nodeify_flag) {
+    // Do not recursively run rn-nodeify, this can be an
+    // issue with yarn when --overwrite is set
+    return
+  }
+
   var toShim
   if (argv.install) {
     if (argv.install === true) {
@@ -314,6 +322,8 @@ function runHelp () {
         -h  --help                  show usage
         -e, --hack                  run package-specific hacks (list or leave blank to run all)
         -i, --install               install shims (list or leave blank to install all)
+        -o, --overwrite             updates installed packages if a newer version is available
+        -y, --yarn                  use yarn to install packages instead of npm (experimental)
 
     Please report bugs!  https://github.com/mvayngrib/rn-nodeify/issues
     */
