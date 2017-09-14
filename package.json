@@ -9,6 +9,7 @@
   "bin": "./cmd.js",
   "license": "MIT",
   "dependencies": {
+    "@yarnpkg/lockfile": "^1.0.0",
     "deep-equal": "^1.0.0",
     "findit": "^2.0.0",
     "fs-extra": "^0.22.1",

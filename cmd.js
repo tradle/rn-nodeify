@@ -10,6 +10,7 @@ var deepEqual = require('deep-equal')
 var find = require('findit')
 var minimist = require('minimist')
 var parallel = require('run-parallel')
+var yarnlock = require('@yarnpkg/lockfile')
 var allShims = require('./shims')
 var coreList = require('./coreList')
 var browser = require('./browser')
@@ -123,6 +124,21 @@ function installShims ({ modules, overwrite }, done) {
     return finish()
   }
 
+  // Load the exact package versions from the lockfile
+  var lockfile
+  if (argv.yarn) {
+    if (fs.existsSync('yarn.lock')) {
+      let result = yarnlock.parse(fs.readFileSync('yarn.lock', 'utf8'))
+      if (result.type == 'success') {
+        lockfile = result.object
+      }
+    }
+  } else {
+    if (fs.existsSync('package-lock.json')) {
+      lockfile = require('package-lock.json')
+    }
+  }
+
   parallel(shimPkgNames.map(function (name) {
     var modPath = path.resolve('./node_modules/' + name)
     return function (cb)  {
@@ -130,17 +146,30 @@ function installShims ({ modules, overwrite }, done) {
         if (!exists) return cb()
 
         var install = true
-        var pkgJson = require(modPath + '/package.json')
-        if (/^git\:\/\//.test(pkgJson._resolved)) {
-          var hash = allShims[name].split('#')[1]
-          if (hash && pkgJson.gitHead.indexOf(hash) === 0) {
+        if (lockfile) {
+          // Use the lockfile to resolve installed version of package
+          var pkgInfo = {}
+          if (argv.yarn) {
+            pkgInfo = lockfile["${name}@${allShims[name]}"] || pkgInfo
+          } else {
+            pkgInfo = lockfile[name] || pkgInfo
+          }
+          if (semver.satisfies(pkgInfo.version, allShims[name])) {
             install = false
           }
         } else {
-          var existingVerNpm5 = (/\-([^\-]+)\.tgz/.exec(pkgJson.version) || [null, null])[1]
-          var existingVer = existingVerNpm5 || pkgJson.version
-          if (semver.satisfies(existingVer, allShims[name])) {
-            install = false
+          // Fallback to using the version from the dependency's package.json
+          if (/^git\:\/\//.test(pkgJson._resolved)) {
+            var hash = allShims[name].split('#')[1]
+            if (hash && pkgJson.gitHead.indexOf(hash) === 0) {
+              install = false
+            }
+          } else {
+            var existingVerNpm5 = (/\-([^\-]+)\.tgz/.exec(pkgJson.version) || [null, null])[1]
+            var existingVer = existingVerNpm5 || pkgJson.version
+            if (semver.satisfies(existingVer, allShims[name])) {
+              install = false
+            }
           }
         }
 
