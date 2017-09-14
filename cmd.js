@@ -152,7 +152,7 @@ function installShims ({ modules, overwrite }, done) {
               if (semver.satisfies(existingVer, allShims[name])) {
                 install = false
               }
-            } else {
+            } else if (existingVer) {
               // To be considered up-to-date, we need an exact match,
               // after doing some normalization of github url's
               if (existingVer.startsWith('github:')) {
