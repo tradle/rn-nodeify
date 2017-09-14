@@ -10,6 +10,7 @@ var deepEqual = require('deep-equal')
 var find = require('findit')
 var minimist = require('minimist')
 var parallel = require('run-parallel')
+var yarnlock = require('@yarnpkg/lockfile')
 var allShims = require('./shims')
 var coreList = require('./coreList')
 var browser = require('./browser')
@@ -115,6 +116,25 @@ function installShims ({ modules, overwrite }, done) {
     return finish()
   }
 
+  // Load the exact package versions from the lockfile
+  var lockfile
+  if (argv.yarn) {
+    if (fs.existsSync('yarn.lock')) {
+      let result = yarnlock.parse(fs.readFileSync('yarn.lock', 'utf8'))
+      if (result.type == 'success') {
+        lockfile = result.object
+      }
+    }
+  } else {
+    var lockpath = path.join(process.cwd(), 'package-lock.json')
+    if (fs.existsSync(lockpath)) {
+      let result = require(lockpath)
+      if (result && result.dependencies) {
+        lockfile = result.dependencies
+      }
+    }
+  }
+
   parallel(shimPkgNames.map(function (name) {
     var modPath = path.resolve('./node_modules/' + name)
     return function (cb)  {
@@ -122,17 +142,43 @@ function installShims ({ modules, overwrite }, done) {
         if (!exists) return cb()
 
         var install = true
-        var pkgJson = require(modPath + '/package.json')
-        if (/^git\:\/\//.test(pkgJson._resolved)) {
-          var hash = allShims[name].split('#')[1]
-          if (hash && pkgJson.gitHead.indexOf(hash) === 0) {
-            install = false
+        if (lockfile) {
+          // Use the lockfile to resolve installed version of package
+          if (argv.yarn) {
+            if (`${name}@${allShims[name]}` in lockfile) {
+              install = false
+            }
+          } else {
+            var existingVer = (lockfile[name] || {}).version
+            var targetVer = allShims[name]
+            if (semver.valid(existingVer)) {
+              if (semver.satisfies(existingVer, targetVer)) {
+                install = false
+              }
+            } else if (existingVer) {
+              // To be considered up-to-date, we need an exact match,
+              // after doing some normalization of github url's
+              if (existingVer.startsWith('github:')) {
+                existingVer = existingVer.slice(7)
+              }
+              if (existingVer.indexOf(targetVer) == 0) {
+                install = false
+              }
+            }
           }
         } else {
-          var existingVerNpm5 = (/\-([^\-]+)\.tgz/.exec(pkgJson.version) || [null, null])[1]
-          var existingVer = existingVerNpm5 || pkgJson.version
-          if (semver.satisfies(existingVer, allShims[name])) {
-            install = false
+          // Fallback to using the version from the dependency's package.json
+          if (/^git\:\/\//.test(pkgJson._resolved)) {
+            var hash = allShims[name].split('#')[1]
+            if (hash && pkgJson.gitHead.indexOf(hash) === 0) {
+              install = false
+            }
+          } else {
+            var existingVerNpm5 = (/\-([^\-]+)\.tgz/.exec(pkgJson.version) || [null, null])[1]
+            var existingVer = existingVerNpm5 || pkgJson.version
+            if (semver.satisfies(existingVer, allShims[name])) {
+              install = false
+            }
           }
         }
 
@@ -314,6 +360,8 @@ function runHelp () {
         -h  --help                  show usage
         -e, --hack                  run package-specific hacks (list or leave blank to run all)
         -i, --install               install shims (list or leave blank to install all)
+        -o, --overwrite             updates installed packages if a newer version is available
+        -y, --yarn                  use yarn to install packages instead of npm (experimental)
 
     Please report bugs!  https://github.com/mvayngrib/rn-nodeify/issues
     */
