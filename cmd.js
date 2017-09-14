@@ -134,8 +134,9 @@ function installShims ({ modules, overwrite }, done) {
       }
     }
   } else {
-    if (fs.existsSync('package-lock.json')) {
-      lockfile = require('package-lock.json')
+    var lockpath = path.join(process.cwd(), 'package-lock.json')
+    if (fs.existsSync(lockpath)) {
+      lockfile = require(lockpath)
     }
   }
 
@@ -148,14 +149,27 @@ function installShims ({ modules, overwrite }, done) {
         var install = true
         if (lockfile) {
           // Use the lockfile to resolve installed version of package
-          var pkgInfo = {}
           if (argv.yarn) {
-            pkgInfo = lockfile["${name}@${allShims[name]}"] || pkgInfo
+            if (`${name}@${allShims[name]}` in lockfile) {
+              install = false
+            }
           } else {
-            pkgInfo = lockfile[name] || pkgInfo
-          }
-          if (semver.satisfies(pkgInfo.version, allShims[name])) {
-            install = false
+            var existingVer = (lockfile[name] || {}).version
+            var targetVer = allShims[name]
+            if (semver.valid(existingVer)) {
+              if (semver.satisfies(existingVer, allShims[name])) {
+                install = false
+              }
+            } else {
+              // To be considered up-to-date, we need an exact match,
+              // after doing some normalization of github url's
+              if (existingVer.startsWith('github:')) {
+                existingVer = existingVer.slice(7)
+              }
+              if (existingVer.indexOf(targetVer) == 0) {
+                install = false
+              }
+            }
           }
         } else {
           // Fallback to using the version from the dependency's package.json
