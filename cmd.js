@@ -128,7 +128,10 @@ function installShims ({ modules, overwrite }, done) {
   } else {
     var lockpath = path.join(process.cwd(), 'package-lock.json')
     if (fs.existsSync(lockpath)) {
-      lockfile = require(lockpath)
+      let result = require(lockpath)
+      if (result && result.dependencies) {
+        lockfile = result.dependencies
+      }
     }
   }
 
@@ -149,7 +152,7 @@ function installShims ({ modules, overwrite }, done) {
             var existingVer = (lockfile[name] || {}).version
             var targetVer = allShims[name]
             if (semver.valid(existingVer)) {
-              if (semver.satisfies(existingVer, allShims[name])) {
+              if (semver.satisfies(existingVer, targetVer)) {
                 install = false
               }
             } else if (existingVer) {
