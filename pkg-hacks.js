@@ -26,11 +26,11 @@ var path = require('path')
 
 module.exports = function hackFiles (hacks) {
   var finder = find('./node_modules')
-  hacks = hacks || hackers.map(function (h) { return h.name })
+  hacks = hacks || hackers.map(h => h.name)
 
   finder.on('file', function (file) {
-    if (!/\.(js|json)$/.test(file)
-      || /\/tests?\//.test(file)) {
+    if (!/\.(js|json)$/.test(file) ||
+      /\/tests?\//.test(file)) {
       return
     }
 
@@ -163,7 +163,7 @@ var hackers = [
     regex: [
       /webtorrent\/lib\/fs-storage\.js/
     ],
-    hack: function(file, contents) {
+    hack: function (file, contents) {
       if (isInReactNative(file)) return
 
       var fixed = contents.replace(/fs\.existsSync\([^\)]*\)/g, 'false')
@@ -177,7 +177,7 @@ var hackers = [
     ],
     hack: function (file, contents) {
       var fixed = contents.replace(/typeof\ FileReaderSync \!\=\= \'undefined\'/, 'false')
-      return contents === fixed ? null  : fixed
+      return contents === fixed ? null : fixed
     }
   },
   {
@@ -224,7 +224,7 @@ var hackers = [
     regex: [
       /levelup\/lib\/util\.js$/
     ],
-    hack: function(file, contents) {
+    hack: function (file, contents) {
       if (isInReactNative(file)) return
 
       var fixed = contents
@@ -257,7 +257,7 @@ var hackers = [
     regex: [
       /level-jobs\/package\.json$/
     ],
-    hack: function(file, contents) {
+    hack: function (file, contents) {
       if (isInReactNative(file)) return
 
       var pkg
@@ -425,7 +425,7 @@ var hackers = [
     regex: [
       /bytewise\/bytewise\.js$/
     ],
-    hack: function(file, contents) {
+    hack: function (file, contents) {
       if (isInReactNative(file)) return
 
       var fixed = contents
@@ -532,8 +532,7 @@ function rewireMain (pkg) {
     var main = pkg.browser || './index.js'
     pkg.browser = {}
     pkg.browser[pkg.main] = main
-  }
-  else if (typeof pkg.browser === 'undefined') {
+  } else if (typeof pkg.browser === 'undefined') {
     pkg.browser = {}
   }
 }

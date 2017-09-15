@@ -17,5 +17,12 @@
     "run-parallel": "^1.1.2",
     "semver": "^5.0.1",
     "xtend": "^4.0.0"
+  },
+  "scripts": {
+    "lint": "eslint --quiet --ignore-path .gitignore .",
+    "precommit": "npm run lint"
+  },
+  "devDependencies": {
+    "husky": "^0.14.3"
   }
 }
