@@ -4,7 +4,7 @@
     "type": "git",
     "url": "https://github.com/monolithlabs/rn-nodeify.git"
   },
-  "version": "7.0.2",
+  "version": "8.0.0",
   "preferGlobal": true,
   "bin": "./cmd.js",
   "license": "MIT",
@@ -18,5 +18,12 @@
     "run-parallel": "^1.1.2",
     "semver": "^5.0.1",
     "xtend": "^4.0.0"
+  },
+  "scripts": {
+    "lint": "eslint --quiet --ignore-path .gitignore .",
+    "precommit": "npm run lint"
+  },
+  "devDependencies": {
+    "husky": "^0.14.3"
   }
 }
