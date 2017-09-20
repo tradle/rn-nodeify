@@ -61,10 +61,7 @@ function run () {
   }
 
   if (toShim.indexOf('crypto') !== -1) {
-    toShim.push(
-      'browserify-sign',
-      'react-native-randombytes'
-    )
+    toShim.push('react-native-randombytes')
   }
 
   if (argv.install) {
