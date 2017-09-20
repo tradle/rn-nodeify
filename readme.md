@@ -6,14 +6,14 @@ Run after npm install and you can use node core modules and npm modules that use
 
 If your project has no non-React-Native dependencies, you don't need this module, and you should just check out ['./shims.js'](./shims.js) for the core node modules to use individually.
 
-However, with bigger projects that don't reimplement every wheel from scratch, somewhere in your dependency tree, something uses a core node module. I found myself building this because in my React Native app, I wanted to use [bitcoinjs-lib](https://github.com/bitcoinjs/bitcoinjs-lib), [levelup](https://github.com/Level/levelup), [bittorrent-dht](https://github.com/feross/bittorrent-dht), and lots of fun crypto. If that sounds like you, keep reading. 
+However, with bigger projects that don't reimplement every wheel from scratch, somewhere in your dependency tree, something uses a core node module. I found myself building this because in my React Native app, I wanted to use [bitcoinjs-lib](https://github.com/bitcoinjs/bitcoinjs-lib), [levelup](https://github.com/Level/levelup), [bittorrent-dht](https://github.com/feross/bittorrent-dht), and lots of fun crypto. If that sounds like you, keep reading.
 
 ## What it does
 
-`rn-nodeify --install`  
+`rn-nodeify --install`
 installs shims for core node modules, see ['./shims.js'](./shims.js) for the current mappings. It recurses down `node_modules` and modifies all the `package.json`'s in there to add/update the `browser` and `react-native` fields. It sounds scary because it is. However, it does work.
 
-`rn-nodeify --hack`  
+`rn-nodeify --hack`
 Now that you're scared, I should also mention that there are some package-specific hacks (see ['./pkg-hacks.js'](./pkg-hacks.js)), for when the React Native packager choked on something that Webpack and Browserify swallowed.
 
 If you're looking for a saner approach, check out [ReactNativify](https://github.com/philikon/ReactNativify). I haven't tested it myself, but I think [philikon](https://github.com/philikon) will be happy to help.
@@ -27,7 +27,7 @@ rn-nodeify <options>
 ## Options
 
 ```
---install     install node core shims (default: install all), fix the "browser" 
+--install     install node core shims (default: install all), fix the "browser"
               and "react-native" fields in the package.json's of dependencies
 --hack        hack individual packages that are known to make the React Native packager choke
 ```
@@ -63,6 +63,8 @@ rn-nodeify will create a `shim.js` file in your project root directory. The firs
 ```js
 import './shim'
 ```
+
+Some shims may require linking libraries, be sure to run `react-native link` after installing new shims if you run into problems.
 
 ### Example Apps / Workflows
 
