@@ -4,7 +4,7 @@
     "type": "git",
     "url": "https://github.com/monolithlabs/rn-nodeify.git"
   },
-  "version": "8.0.0",
+  "version": "8.2.0",
   "preferGlobal": true,
   "bin": "./cmd.js",
   "license": "MIT",
