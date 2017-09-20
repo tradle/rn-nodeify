@@ -149,25 +149,26 @@ function installShims ({ modules, overwrite }, done) {
               install = false
             }
           } else {
-            var existingVer = (lockfile[name] || {}).version
+            var lockfileVer = (lockfile[name] || {}).version
             var targetVer = allShims[name]
-            if (semver.valid(existingVer)) {
-              if (semver.satisfies(existingVer, targetVer)) {
+            if (semver.valid(lockfileVer)) {
+              if (semver.satisfies(lockfileVer, targetVer)) {
                 install = false
               }
-            } else if (existingVer) {
+            } else if (lockfileVer) {
               // To be considered up-to-date, we need an exact match,
               // after doing some normalization of github url's
-              if (existingVer.startsWith('github:')) {
-                existingVer = existingVer.slice(7)
+              if (lockfileVer.startsWith('github:')) {
+                lockfileVer = lockfileVer.slice(7)
               }
-              if (existingVer.indexOf(targetVer) == 0) {
+              if (lockfileVer.indexOf(targetVer) == 0) {
                 install = false
               }
             }
           }
         } else {
           // Fallback to using the version from the dependency's package.json
+          var pkgJson = require(modPath + '/package.json')
           if (/^git\:\/\//.test(pkgJson._resolved)) {
             var hash = allShims[name].split('#')[1]
             if (hash && pkgJson.gitHead.indexOf(hash) === 0) {
