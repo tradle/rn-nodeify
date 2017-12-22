@@ -20,3 +20,9 @@ process.env['NODE_ENV'] = isDev ? 'development' : 'production'
 if (typeof localStorage !== 'undefined') {
   localStorage.debug = isDev ? '*' : ''
 }
+
+// Make sure crypto gets loaded first, so it can populate global.crypto
+if (require('./package.json').dependencies['react-native-crypto']) {
+  let cryptoModule = 'crypto'
+  const crypto = require(cryptoModule)
+}
