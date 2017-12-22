@@ -2,7 +2,7 @@
   "name": "rn-nodeify",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mvayngrib/rn-nodeify.git"
+    "url": "https://github.com/monolithlabs/rn-nodeify.git"
   },
   "version": "8.2.0",
   "preferGlobal": true,

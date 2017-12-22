@@ -6,7 +6,7 @@
   "dns": "dns.js",
   "net": "react-native-tcp",
   "domain": "domain-browser",
-  "http": "react-native-http",
+  "http": "http-node",
   "https": "https-browserify",
   "os": "react-native-os",
   "path": "path-browserify",
