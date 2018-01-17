@@ -64,6 +64,8 @@ rn-nodeify will create a `shim.js` file in your project root directory. The firs
 import './shim'
 ```
 
+If you are using the crypto shim, you will need to manually uncomment the line to `require('crypto')` in `shim.js`, this is because as of react-native 0.49, dynamically requiring a library is no longer allowed.
+
 Some shims may require linking libraries, be sure to run `react-native link` after installing new shims if you run into problems.
 
 ### Example Apps / Workflows
