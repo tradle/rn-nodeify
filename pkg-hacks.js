@@ -160,11 +160,15 @@ var hackers = [
     regex: [
       /react\-(?:native\/)?packager\/src\/bundler\/bundle\.js/i,
       /react\-(?:native\/)?packager\/src\/JSTransformer\/worker\/minify\.js/i,
+      /metro\/src\/JSTransformer\/worker\/minify\.js/i,
     ],
     hack: function (file, contents) {
       if (contents.indexOf('mangle:false') !== -1) return
 
-      var fixed = contents.replace(/(\s+)(fromString: true,)/, '$1$2$1mangle:false,')
+      var fixed = contents
+        .replace('mangle: { toplevel: true }', 'mangle:false')
+        .replace(/(\s+)(fromString: true,)/, '$1$2$1mangle:false,')
+
       return contents === fixed ? null : fixed
     }
   },
