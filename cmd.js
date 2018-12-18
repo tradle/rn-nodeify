@@ -36,16 +36,15 @@ if (argv.help) {
   run()
 }
 
-function run () {
+function run() {
   var toShim
   if (argv.install) {
     if (argv.install === true) {
       toShim = coreList
     } else {
-      toShim = argv.install.split(',')
-        .map(function (name) {
-          return name.trim()
-        })
+      toShim = argv.install.split(',').map(function(name) {
+        return name.trim()
+      })
     }
   } else {
     toShim = coreList
@@ -67,20 +66,23 @@ function run () {
   }
 
   if (argv.install) {
-    installShims({
-      modules: toShim,
-      overwrite: argv.overwrite
-    }, function (err) {
-      if (err) throw err
+    installShims(
+      {
+        modules: toShim,
+        overwrite: argv.overwrite
+      },
+      function(err) {
+        if (err) throw err
 
-      runHacks()
-    })
+        runHacks()
+      }
+    )
   } else {
     runHacks()
   }
 
-  function runHacks () {
-    hackPackageJSONs(toShim, function (err) {
+  function runHacks() {
+    hackPackageJSONs(toShim, function(err) {
       if (err) throw err
 
       if (argv.hack) {
@@ -91,7 +93,7 @@ function run () {
   }
 }
 
-function installShims ({ modules, overwrite }, done) {
+function installShims({ modules, overwrite }, done) {
   if (!overwrite) {
     modules = modules.filter(name => {
       const shimPackageName = browser[name] || name
@@ -105,10 +107,10 @@ function installShims ({ modules, overwrite }, done) {
   }
 
   var shimPkgNames = modules
-    .map(function (m) {
+    .map(function(m) {
       return browser[m] || m
     })
-    .filter(function (shim) {
+    .filter(function(shim) {
       return !/^_/.test(shim) && (shim[0] === '@' || shim.indexOf('/') === -1)
     })
 
@@ -135,121 +137,124 @@ function installShims ({ modules, overwrite }, done) {
     }
   }
 
-  parallel(shimPkgNames.map(function (name) {
-    var modPath = path.resolve('./node_modules/' + name)
-    return function (cb) {
-      fs.exists(modPath, function (exists) {
-        if (!exists) return cb()
+  parallel(
+    shimPkgNames.map(function(name) {
+      var modPath = path.resolve('./node_modules/' + name)
+      return function(cb) {
+        fs.exists(modPath, function(exists) {
+          if (!exists) return cb()
 
-        var install = true
-        if (lockfile) {
-          // Use the lockfile to resolve installed version of package
-          if (argv.yarn) {
-            if (`${name}@${allShims[name]}` in lockfile) {
-              install = false
-            }
-          } else {
-            var lockfileVer = (lockfile[name] || {}).version
-            var targetVer = allShims[name]
-            if (semver.valid(lockfileVer)) {
-              if (semver.satisfies(lockfileVer, targetVer)) {
+          var install = true
+          if (lockfile) {
+            // Use the lockfile to resolve installed version of package
+            if (argv.yarn) {
+              if (`${name}@${allShims[name]}` in lockfile) {
                 install = false
               }
-            } else if (lockfileVer) {
-              // To be considered up-to-date, we need an exact match,
-              // after doing some normalization of github url's
-              if (lockfileVer.startsWith('github:')) {
-                lockfileVer = lockfileVer.slice(7)
+            } else {
+              var lockfileVer = (lockfile[name] || {}).version
+              var targetVer = allShims[name]
+              if (semver.valid(lockfileVer)) {
+                if (semver.satisfies(lockfileVer, targetVer)) {
+                  install = false
+                }
+              } else if (lockfileVer) {
+                // To be considered up-to-date, we need an exact match,
+                // after doing some normalization of github url's
+                if (lockfileVer.startsWith('github:')) {
+                  lockfileVer = lockfileVer.slice(7)
+                }
+                if (lockfileVer.indexOf(targetVer) == 0) {
+                  install = false
+                }
               }
-              if (lockfileVer.indexOf(targetVer) == 0) {
+            }
+          } else {
+            // Fallback to using the version from the dependency's package.json
+            var pkgJson = require(modPath + '/package.json')
+            if (/^git\:\/\//.test(pkgJson._resolved)) {
+              var hash = allShims[name].split('#')[1]
+              if (hash && pkgJson.gitHead.indexOf(hash) === 0) {
+                install = false
+              }
+            } else {
+              var existingVerNpm5 = (/\-([^\-]+)\.tgz/.exec(pkgJson.version) || [null, null])[1]
+              var existingVer = existingVerNpm5 || pkgJson.version
+              if (semver.satisfies(existingVer, allShims[name])) {
                 install = false
               }
             }
           }
-        } else {
-          // Fallback to using the version from the dependency's package.json
-          var pkgJson = require(modPath + '/package.json')
-          if (/^git\:\/\//.test(pkgJson._resolved)) {
-            var hash = allShims[name].split('#')[1]
-            if (hash && pkgJson.gitHead.indexOf(hash) === 0) {
-              install = false
-            }
-          } else {
-            var existingVerNpm5 = (/\-([^\-]+)\.tgz/.exec(pkgJson.version) || [null, null])[1]
-            var existingVer = existingVerNpm5 || pkgJson.version
-            if (semver.satisfies(existingVer, allShims[name])) {
-              install = false
-            }
+
+          if (!install) {
+            log('not reinstalling ' + name)
+            shimPkgNames.splice(shimPkgNames.indexOf(name), 1)
           }
-        }
 
-        if (!install) {
-          log('not reinstalling ' + name)
-          shimPkgNames.splice(shimPkgNames.indexOf(name), 1)
-        }
-
-        cb()
-      })
-    }
-  }), function (err) {
-    if (err) throw err
-
-    if (!shimPkgNames.length) {
-      return finish()
-    }
-
-    var installLine = BASE_INSTALL_LINE + ' '
-    shimPkgNames.forEach(function (name) {
-      let version = allShims[name]
-      if (!version) return
-      if (version.indexOf('/') === -1) {
-        if (argv.yarn) {
-          log('installing from yarn', name)
-        } else {
-          log('installing from npm', name)
-        }
-        installLine += name + '@' + version
-      } else {
-        // github url
-        log('installing from github', name)
-        installLine += version.match(/([^\/]+\/[^\/]+)$/)[1]
+          cb()
+        })
       }
-
-      pkg.dependencies[name] = version
-      installLine += ' '
-    })
-
-    fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2), function (err) {
+    }),
+    function(err) {
       if (err) throw err
 
-      if (installLine.trim() === BASE_INSTALL_LINE) {
+      if (!shimPkgNames.length) {
         return finish()
       }
 
-      log('installing:', installLine)
-      proc.execSync(installLine, {
-        cwd: process.cwd(),
-        env: process.env,
-        stdio: 'inherit'
+      var installLine = BASE_INSTALL_LINE + ' '
+      shimPkgNames.forEach(function(name) {
+        let version = allShims[name]
+        if (!version) return
+        if (version.indexOf('/') === -1) {
+          if (argv.yarn) {
+            log('installing from yarn', name)
+          } else {
+            log('installing from npm', name)
+          }
+          installLine += name + '@' + version
+        } else {
+          // github url
+          log('installing from github', name)
+          installLine += version.match(/([^\/]+\/[^\/]+)$/)[1]
+        }
+
+        pkg.dependencies[name] = version
+        installLine += ' '
       })
 
-      finish()
-    })
-  })
+      fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2), function(err) {
+        if (err) throw err
 
-  function finish () {
+        if (installLine.trim() === BASE_INSTALL_LINE) {
+          return finish()
+        }
+
+        log('installing:', installLine)
+        proc.execSync(installLine, {
+          cwd: process.cwd(),
+          env: process.env,
+          stdio: 'inherit'
+        })
+
+        finish()
+      })
+    }
+  )
+
+  function finish() {
     copyShim(done)
   }
 }
 
-function copyShim (cb) {
-  fs.exists('./shim.js', function (exists) {
+function copyShim(cb) {
+  fs.exists('./shim.js', function(exists) {
     if (exists) {
       log('not overwriting shim.js. For the latest version, see rn-nodeify/shim.js')
       return cb()
     }
 
-    fs.readFile(path.join(__dirname, 'shim.js'), { encoding: 'utf8' }, function (err, contents) {
+    fs.readFile(path.join(__dirname, 'shim.js'), { encoding: 'utf8' }, function(err, contents) {
       if (err) return cb(err)
 
       fs.writeFile('./shim.js', contents, cb)
@@ -257,12 +262,12 @@ function copyShim (cb) {
   })
 }
 
-function hackPackageJSONs (modules, done) {
+function hackPackageJSONs(modules, done) {
   fixPackageJSON(modules, './package.json', true)
 
   var finder = find('./node_modules')
 
-  finder.on('file', function (file) {
+  finder.on('file', function(file) {
     if (path.basename(file) !== 'package.json') return
 
     fixPackageJSON(modules, file, true)
@@ -271,10 +276,10 @@ function hackPackageJSONs (modules, done) {
   finder.once('end', done)
 }
 
-function fixPackageJSON (modules, file, overwrite) {
+function fixPackageJSON(modules, file, overwrite) {
   if (file.split(path.sep).indexOf('react-native') >= 0) return
 
-  fs.readFile(path.resolve(file), { encoding: 'utf8' }, function (err, contents) {
+  fs.readFile(path.resolve(file), { encoding: 'utf8' }, function(err, contents) {
     if (err) throw err
 
     // var browser = pick(baseBrowser, modules)
@@ -296,7 +301,8 @@ function fixPackageJSON (modules, file, overwrite) {
     var orgBrowser = pkgJson['react-native'] || pkgJson.browser || pkgJson.browserify || {}
     if (typeof orgBrowser === 'string') {
       orgBrowser = {}
-      orgBrowser[pkgJson.main || 'index.js'] = pkgJson['react-native'] || pkgJson.browser || pkgJson.browserify
+      orgBrowser[pkgJson.main || 'index.js'] =
+        pkgJson['react-native'] || pkgJson.browser || pkgJson.browserify
     }
 
     var depBrowser = extend({}, orgBrowser)
@@ -314,20 +320,23 @@ function fixPackageJSON (modules, file, overwrite) {
       }
     }
 
-    modules.forEach(function (p) {
+    modules.forEach(function(p) {
       if (depBrowser[p] === false && browser[p] !== false) {
         log('removing browser exclude', file, p)
         delete depBrowser[p]
       }
     })
 
-
     const { main } = pkgJson
-    if (main && typeof main === 'string') {
+    if (typeof main === 'string') {
       const alt = main.startsWith('./') ? main.slice(2) : './' + main
       if (depBrowser[alt]) {
         depBrowser[main] = depBrowser[alt]
-        log(`normalized "main" browser mapping in ${pkgJson.name}, fixed here: https://github.com/facebook/metro-bundler/pull/3`)
+        log(
+          `normalized "main" browser mapping in ${
+            pkgJson.name
+          }, fixed here: https://github.com/facebook/metro-bundler/pull/3`
+        )
         delete depBrowser[alt]
       }
     }
@@ -345,13 +354,14 @@ function fixPackageJSON (modules, file, overwrite) {
   })
 }
 
-function rethrow (err) {
+function rethrow(err) {
   if (err) throw err
 }
 
-function runHelp () {
-  log(function () {
-    /*
+function runHelp() {
+  log(
+    function() {
+      /*
     Usage:
         rn-nodeify --install dns,stream,http,https
         rn-nodeify --install # installs all core shims
@@ -366,10 +376,15 @@ function runHelp () {
 
     Please report bugs!  https://github.com/mvayngrib/rn-nodeify/issues
     */
-  }.toString().split(/\n/).slice(2, -2).join('\n'))
+    }
+      .toString()
+      .split(/\n/)
+      .slice(2, -2)
+      .join('\n')
+  )
   process.exit(0)
 }
 
-function log () {
+function log() {
   console.log.apply(console, arguments)
 }
