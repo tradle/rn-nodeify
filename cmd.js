@@ -323,7 +323,7 @@ function fixPackageJSON (modules, file, overwrite) {
 
 
     const { main } = pkgJson
-    if (main) {
+    if (typeof main === 'string') {
       const alt = main.startsWith('./') ? main.slice(2) : './' + main
       if (depBrowser[alt]) {
         depBrowser[main] = depBrowser[alt]
