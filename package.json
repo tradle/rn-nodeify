@@ -4,7 +4,7 @@
     "type": "git",
     "url": "https://github.com/mvayngrib/rn-nodeify.git"
   },
-  "version": "10.0.0",
+  "version": "10.0.1",
   "preferGlobal": true,
   "bin": "./cmd.js",
   "license": "MIT",
