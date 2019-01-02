@@ -265,6 +265,13 @@ function hackPackageJSONs (modules, done) {
   finder.on('file', function (file) {
     if (path.basename(file) !== 'package.json') return
 
+    if (argv.ignore) {
+        var toIgnore = argv.ignore.split(',')
+        var rootModuleName = file.replace(/^node_modules\//, '').split('/')[0]
+        if (toIgnore.includes(rootModuleName)) {
+            return
+        }
+    }
     fixPackageJSON(modules, file, true)
   })
 
