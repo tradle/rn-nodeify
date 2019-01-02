@@ -30,6 +30,7 @@ rn-nodeify <options>
 --install     install node core shims (default: install all), fix the "browser"
               and "react-native" fields in the package.json's of dependencies
 --hack        hack individual packages that are known to make the React Native packager choke
+--ignore      packages from root package.json to be ignored by nodeify, usefull when using custom modules using `npm link`
 ```
 
 ### Examples
