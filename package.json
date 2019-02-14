@@ -2,7 +2,7 @@
   "name": "rn-nodeify",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mvayngrib/rn-nodeify.git"
+    "url": "https://github.com/tradle/rn-nodeify.git"
   },
   "version": "10.0.1",
   "preferGlobal": true,
