@@ -70,12 +70,12 @@ Some shims may require linking libraries, be sure to run `react-native link` aft
 
 ### Example Apps / Workflows
 
-* the [react-native-crypto](https://github.com/mvayngrib/react-native-crypto) package has an example workflow for using crypto in a React Native app
+* the [react-native-crypto](https://github.com/tradle/react-native-crypto) package has an example workflow for using crypto in a React Native app
 * this [example React Native app](https://github.com/mvayngrib/adexample) shows how you can use [levelup](https://github.com/Level/levelup) in React Native
 
 ### Example Workflow
 
-copied from [react-native-crypto](https://github.com/mvayngrib/react-native-crypto)
+copied from [react-native-crypto](https://github.com/tradle/react-native-crypto)
 
 1. Install and shim
   ```sh
@@ -84,7 +84,7 @@ copied from [react-native-crypto](https://github.com/mvayngrib/react-native-cryp
   npm i --save react-native-randombytes
   react-native link react-native-randombytes
   # install latest rn-nodeify
-  npm i --save-dev mvayngrib/rn-nodeify
+  npm i --save-dev rn-nodeify@latest
   # install node core shims and recursively hack package.json files
   # in ./node_modules to add/update the "browser"/"react-native" field with relevant mappings
   ./node_modules/.bin/rn-nodeify --hack --install
@@ -110,6 +110,6 @@ copied from [react-native-crypto](https://github.com/mvayngrib/react-native-cryp
 - removing the packager cache helps as well sometimes (`rm -fr $TMPDIR/react-*`)
 - rn-nodeify currently uses `npm` to install shims. PRs are welcome to make it compatible with `yarn`
 - use `npm@3`. `npm@5` has some issues that cause `node_modules` to disappear. See:
-  - https://github.com/mvayngrib/rn-nodeify/issues/42
+  - https://github.com/tradle/rn-nodeify/issues/42
   - https://github.com/infinitered/ignite/issues/1101
   - https://github.com/npm/npm/issues/16839
