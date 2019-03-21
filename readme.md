@@ -30,6 +30,7 @@ rn-nodeify <options>
 --install     install node core shims (default: install all), fix the "browser"
               and "react-native" fields in the package.json's of dependencies
 --hack        hack individual packages that are known to make the React Native packager choke
+--yarn        use yarn instead of npm
 ```
 
 ### Examples
@@ -108,7 +109,6 @@ copied from [react-native-crypto](https://github.com/tradle/react-native-crypto)
 - when installing a package from git, the postinstall hook isn't triggered, run it manually instead (`npm run postinstall`)
 - restart the react-native packager after installing a module!
 - removing the packager cache helps as well sometimes (`rm -fr $TMPDIR/react-*`)
-- rn-nodeify currently uses `npm` to install shims. PRs are welcome to make it compatible with `yarn`
 - use `npm@3`. `npm@5` has some issues that cause `node_modules` to disappear. See:
   - https://github.com/tradle/rn-nodeify/issues/42
   - https://github.com/infinitered/ignite/issues/1101
