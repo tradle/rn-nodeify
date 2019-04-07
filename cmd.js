@@ -109,7 +109,7 @@ function installShims ({ modules, overwrite }, done) {
       return browser[m] || m
     })
     .filter(function (shim) {
-      return !/^_/.test(shim) && shim.indexOf('/') === -1
+      return !/^_/.test(shim) && (shim[0] === '@' || shim.indexOf('/') === -1)
     })
 
   if (!shimPkgNames.length) {
@@ -323,7 +323,7 @@ function fixPackageJSON (modules, file, overwrite) {
 
 
     const { main } = pkgJson
-    if (main) {
+    if (typeof main === 'string') {
       const alt = main.startsWith('./') ? main.slice(2) : './' + main
       if (depBrowser[alt]) {
         depBrowser[main] = depBrowser[alt]
