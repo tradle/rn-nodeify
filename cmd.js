@@ -274,75 +274,73 @@ function hackPackageJSONs (modules, done) {
 function fixPackageJSON (modules, file, overwrite) {
   if (file.split(path.sep).indexOf('react-native') >= 0) return
 
-  fs.readFile(path.resolve(file), { encoding: 'utf8' }, function (err, contents) {
-    if (err) throw err
+  var contents = fs.readFileSync(path.resolve(file), { encoding: 'utf8' })
 
-    // var browser = pick(baseBrowser, modules)
-    var pkgJson
-    try {
-      pkgJson = JSON.parse(contents)
-    } catch (err) {
-      console.warn('failed to parse', file)
-      return
-    }
+  // var browser = pick(baseBrowser, modules)
+  var pkgJson
+  try {
+    pkgJson = JSON.parse(contents)
+  } catch (err) {
+    console.warn('failed to parse', file)
+    return
+  }
 
-    // if (shims[pkgJson.name]) {
-    //   log('skipping', pkgJson.name)
-    //   return
-    // }
+  // if (shims[pkgJson.name]) {
+  //   log('skipping', pkgJson.name)
+  //   return
+  // }
 
-    // if (pkgJson.name === 'readable-stream') debugger
+  // if (pkgJson.name === 'readable-stream') debugger
 
-    var orgBrowser = pkgJson['react-native'] || pkgJson.browser || pkgJson.browserify || {}
-    if (typeof orgBrowser === 'string') {
-      orgBrowser = {}
-      orgBrowser[pkgJson.main || 'index.js'] = pkgJson['react-native'] || pkgJson.browser || pkgJson.browserify
-    }
+  var orgBrowser = pkgJson['react-native'] || pkgJson.browser || pkgJson.browserify || {}
+  if (typeof orgBrowser === 'string') {
+    orgBrowser = {}
+    orgBrowser[pkgJson.main || 'index.js'] = pkgJson['react-native'] || pkgJson.browser || pkgJson.browserify
+  }
 
-    var depBrowser = extend({}, orgBrowser)
-    for (var p in browser) {
-      if (modules.indexOf(p) === -1) continue
+  var depBrowser = extend({}, orgBrowser)
+  for (var p in browser) {
+    if (modules.indexOf(p) === -1) continue
 
-      if (!(p in orgBrowser)) {
-        depBrowser[p] = browser[p]
+    if (!(p in orgBrowser)) {
+      depBrowser[p] = browser[p]
+    } else {
+      if (!overwrite && orgBrowser[p] !== browser[p]) {
+        log('not overwriting mapping', p, orgBrowser[p])
       } else {
-        if (!overwrite && orgBrowser[p] !== browser[p]) {
-          log('not overwriting mapping', p, orgBrowser[p])
-        } else {
-          depBrowser[p] = browser[p]
-        }
+        depBrowser[p] = browser[p]
       }
     }
+  }
 
-    modules.forEach(function (p) {
-      if (depBrowser[p] === false && browser[p] !== false) {
-        log('removing browser exclude', file, p)
-        delete depBrowser[p]
-      }
-    })
-
-
-    const { main } = pkgJson
-    if (typeof main === 'string') {
-      const alt = main.startsWith('./') ? main.slice(2) : './' + main
-      if (depBrowser[alt]) {
-        depBrowser[main] = depBrowser[alt]
-        log(`normalized "main" browser mapping in ${pkgJson.name}, fixed here: https://github.com/facebook/metro-bundler/pull/3`)
-        delete depBrowser[alt]
-      }
-    }
-
-    if (pkgJson.name === 'constants-browserify') {
-      // otherwise react-native packager chokes for some reason
-      delete depBrowser.constants
-    }
-
-    if (!deepEqual(orgBrowser, depBrowser)) {
-      pkgJson.browser = pkgJson['react-native'] = depBrowser
-      delete pkgJson.browserify
-      fs.writeFile(file, JSON.stringify(pkgJson, null, 2), rethrow)
+  modules.forEach(function (p) {
+    if (depBrowser[p] === false && browser[p] !== false) {
+      log('removing browser exclude', file, p)
+      delete depBrowser[p]
     }
   })
+
+
+  const { main } = pkgJson
+  if (typeof main === 'string') {
+    const alt = main.startsWith('./') ? main.slice(2) : './' + main
+    if (depBrowser[alt]) {
+      depBrowser[main] = depBrowser[alt]
+      log(`normalized "main" browser mapping in ${pkgJson.name}, fixed here: https://github.com/facebook/metro-bundler/pull/3`)
+      delete depBrowser[alt]
+    }
+  }
+
+  if (pkgJson.name === 'constants-browserify') {
+    // otherwise react-native packager chokes for some reason
+    delete depBrowser.constants
+  }
+
+  if (!deepEqual(orgBrowser, depBrowser)) {
+    pkgJson.browser = pkgJson['react-native'] = depBrowser
+    delete pkgJson.browserify
+    fs.writeFile(file, JSON.stringify(pkgJson, null, 2), rethrow)
+  }
 }
 
 function rethrow (err) {
