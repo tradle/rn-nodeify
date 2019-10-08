@@ -546,7 +546,7 @@ function body (fn) {
 }
 
 function prettify (json) {
-  return JSON.stringify(json, null, 2)
+  return JSON.stringify(json, null, 2) + '\n'
 }
 
 function isInReactNative (file) {
