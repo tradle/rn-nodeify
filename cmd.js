@@ -219,7 +219,7 @@ function installShims ({ modules, overwrite }, done) {
       installLine += ' '
     })
 
-    fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2), function (err) {
+    fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n', function (err) {
       if (err) throw err
 
       if (installLine.trim() === BASE_INSTALL_LINE) {
@@ -339,7 +339,7 @@ function fixPackageJSON (modules, file, overwrite) {
   if (!deepEqual(orgBrowser, depBrowser)) {
     pkgJson.browser = pkgJson['react-native'] = depBrowser
     delete pkgJson.browserify
-    fs.writeFileSync(file, JSON.stringify(pkgJson, null, 2))
+    fs.writeFileSync(file, JSON.stringify(pkgJson, null, 2) + '\n')
   }
 }
 
