@@ -18,7 +18,7 @@ module.exports = {
   "punycode": "^1.2.4",
   "querystring-es3": "~0.2.0",
   "react-native-level-fs": "^3.0.0",
-  "react-native-udp": "^2.1.0",
+  "react-native-udp": "^3.2.0",
   "readable-stream": "1.0.33",
   // "stream-browserify": "substack/stream-browserify#fa56e68",
   "stream-browserify": "^1.0.0",
@@ -27,6 +27,6 @@ module.exports = {
   "tty-browserify": "0.0.0",
   "url": "~0.10.1",
   "util": "~0.10.3",
-  "react-native-tcp": "^3.2.1",
+  "react-native-tcp-socket": "^3.2.1",
   "vm-browserify": "0.0.4"
 }
