@@ -519,8 +519,11 @@ var hackers = [
     regex: [/pbkdf2/],
     hack: function (file, contents) {
       if (isInReactNative(file)) return
-
-      var fixed = contents.replace(/\.+process\.version/g, '["' + process.version + '"]')
+      
+      var replacement = 'global["' + process.version + '"]'
+      var fixed = contents
+        .replace(/global.process.version/g, replacement)
+        .replace(/process.version/g, replacement)
 
       return contents === fixed ? null : fixed
     }
