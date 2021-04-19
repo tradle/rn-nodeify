@@ -522,7 +522,7 @@ var hackers = [
 
       var fixed = contents
         .replace(/global\.process\.version/g, '"' + process.version + '"')
-        .replace(/process.version/g, '"' + process.version + '"')
+        .replace(/process\.version/g, '"' + process.version + '"')
 
       return contents === fixed ? null : fixed
     }
