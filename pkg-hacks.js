@@ -520,7 +520,9 @@ var hackers = [
     hack: function (file, contents) {
       if (isInReactNative(file)) return
 
-      var fixed = contents.replace(/process.version/g, '"' + process.version + '"')
+      var fixed = contents
+        .replace(/global\.process\.version/g, '"' + process.version + '"')
+        .replace(/process\.version/g, '"' + process.version + '"')
 
       return contents === fixed ? null : fixed
     }
