@@ -27,6 +27,7 @@ module.exports = [
   "util",
   "net",
   "vm",
-  // note: tls doesn't have a shim
-  "tls"
+  // note: tls and child_process don't have shims
+  "tls",
+  "child_process",
 ]
