@@ -22,5 +22,6 @@
   "timers": "timers-browserify",
   "tty": "tty-browserify",
   "vm": "vm-browserify",
+  "child_process": false,
   "tls": false
 }
